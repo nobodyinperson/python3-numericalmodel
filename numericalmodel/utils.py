@@ -9,6 +9,23 @@ import inspect
 # external modules
 
 
+######################
+### util functions ###
+######################
+def is_numeric(x):
+    """ Check if a given value is numeric, i.e. whether numeric operations can
+    be done with it.  
+    Args:
+        x (any): the input value
+    Returns:
+        bool: True if the value is numeric, False otherwise
+    """
+    attrs = ['__add__', '__sub__', '__mul__', '__truediv__', '__pow__']
+    return all(hasattr(x, attr) for attr in attrs)
+
+####################
+### util classes ###
+####################
 class LoggerObject(object):
     """ Simple base class that provides a 'logger' property
     """
@@ -68,7 +85,7 @@ class ReprObject(object):
         # create "arg = {arg}" string list for reprformat
         args_kv = []
         for arg in init_args.keys():
-            args_kv.append("{arg} = {{{arg}}}".format(arg=arg))
+            args_kv.append("    {arg} = {{{arg}}}".format(arg=arg))
 
         # create the format string
         if args_kv: # if there are arguments
@@ -84,4 +101,5 @@ class ReprObject(object):
 
         reprstring = (reprformatstr).format(**reprformatargs)
         return reprstring
+
 

@@ -4,6 +4,7 @@ import logging
 
 # internal modules
 from .genericmodel import GenericModel
+from . import interfaces
 
 # external modules
 
@@ -46,10 +47,36 @@ class NumericalModel(GenericModel):
     @property
     def parameters(self):
         try:                   self._parameters # already defined?
-        except AttributeError: self._parameters = "" # default
+        except AttributeError: self._parameters = interfaces.SetOfParameters()
         return self._parameters # return
 
     @parameters.setter
     def parameters(self,newparameters):
-        assert isinstance(newparameters, str), "parameters has to be str"
+        assert issubclass(newparameters, interfaces.SetOfParameters), \
+            "parameters has to be object of subclass of SetOfParameters"
         self._parameters = newparameters
+
+    @property
+    def forcing(self):
+        try:                   self._forcing # already defined?
+        except AttributeError: self._forcing = interfaces.SetOfForcingValues() 
+        return self._forcing # return
+
+    @forcing.setter
+    def forcing(self,newforcing):
+        assert issubclass(newforcing, interfaces.SetOfValues), \
+            "forcing has to be object of subclass of SetOfForcingValues"
+        self._forcing = newforcing
+
+    @property
+    def variables(self):
+        try:                   self._variables # already defined?
+        except AttributeError: # default
+            self._variables = interfaces.SetOfStateVariables() 
+        return self._variables # return
+
+    @variables.setter
+    def variables(self,newvariables):
+        assert issubclass(newvariables, interfaces.SetOfStateVariables), \
+            "variables has to be object of subclass of SetOfStateVariables"
+        self._variables = newvariables
