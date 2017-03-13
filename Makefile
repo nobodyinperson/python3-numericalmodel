@@ -16,7 +16,7 @@ clean:
 distclean: clean
 	rm -rf *.egg-info
 	rm -rf build
-	rm -rf $$(find -type d -iname __pycache__)
+	rm -rf $$(find -type d -iname '__pycache__')
 	rm -f $$(find -type f -iname '*.pyc')
 
 .PHONY: setup-test
