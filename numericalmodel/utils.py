@@ -71,8 +71,12 @@ class ReprObject(object):
             args_kv.append("{arg} = {{{arg}}}".format(arg=arg))
 
         # create the format string
-        reprformatstr = "\n".join([
-            "{____classname}(", ",\n".join(args_kv), ")", ])
+        if args_kv: # if there are arguments
+            reprformatstr = "\n".join([
+                "{____classname}(", ",\n".join(args_kv), ")", ])
+        else: # no arguments
+            reprformatstr = "{____classname}()"
+            
 
         # add classname to format args
         reprformatargs = init_args.copy()

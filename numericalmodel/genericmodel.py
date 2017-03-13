@@ -8,19 +8,35 @@ from .utils import *
 # external modules
 
 class GenericModel(LoggerObject,ReprObject):
+    """ Base class for models
+    """
     def __init__(self,
             name = "unnamed model",
             version = "0.0.1",
-            description = "",
-            long_description = "",
+            description = "a generic model",
+            long_description = "This is a generic model.",
             authors = "anonymous",
             ):
-        # call parent constructor
-        LoggerObject.__init__(
-            self, logger = logging.getLogger(__name__)) # logger default
+        """ Class constructor
+        Args:
+            name (str): the model name
+            version (str): the model version
+            description (str): a short model description
+            long_description (str): an extended model description
+            authors (str, list or dict): model authors.
+                str: name of single author
+                list: list of author names
+                dict: dict of {'task': ['name1','name1']} pairs
+        """
 
-        self.name = name # set name
-        self.authors = authors # set authors
+        self.logger = logging.getLogger(__name__) # logger 
+
+        # set properties
+        self.name = name 
+        self.version = version 
+        self.description = description 
+        self.long_description = long_description
+        self.authors = authors 
 
     ##################
     ### Properties ###
