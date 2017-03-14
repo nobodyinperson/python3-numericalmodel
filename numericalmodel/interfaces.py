@@ -14,9 +14,9 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
     """ Base class for model interface values
     """
     def __init__(self,
-        name = "unnamed interface value",
-        id = "unnamed_value",
-        value = 0
+        name = None,
+        id = None,
+        value = None,
         ):
         """ Class constructor
         Args:
@@ -25,9 +25,12 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
             value (numeric): numeric value. Will be converted to np.array
         """
         # set properties
-        self.name = name
-        self.id = id
-        self.value = value
+        if name is None:  self.name = self._default_name
+        else:             self.name = name
+        if id is None:    self.id = self._default_id
+        else:             self.id = id
+        if value is None: self.value = self._default_value
+        else:             self.value = value
 
     ##################
     ### Properties ###
@@ -35,7 +38,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
     @property
     def id(self):
         try:                   self._id # already defined?
-        except AttributeError: self._id = "unnamed_variable" # default
+        except AttributeError: self._id = self._default_id # default
         return self._id # return
 
     @id.setter
@@ -44,9 +47,15 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         self._id = newid 
 
     @property
+    def _default_id(self):
+        """ Default id if none was given. Subclasses should override this.
+        """
+        return "unnamed_variable"
+
+    @property
     def name(self):
         try:                   self._name # already defined?
-        except AttributeError: self._name = "unnamed interface value" # default
+        except AttributeError: self._name = self._default_name # default
         return self._name # return
 
     @name.setter
@@ -55,15 +64,45 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         self._name = newname 
 
     @property
+    def _default_name(self):
+        """ Default name if none was given. Subclasses should override this.
+        """
+        return "unnamed value"
+
+    @property
     def value(self):
         try:                   self._value # already defined?
-        except AttributeError: self._value = 0 # default
+        except AttributeError: self._value = self._default_value # default
         return self._value # return
 
     @value.setter
     def value(self,newvalue):
         assert utils.is_numeric(newvalue), "value has to be numeric"
         self._value = np.asarray(newvalue) # convert to numpy array
+
+    @property
+    def _default_value(self):
+        """ Default value if none was given. Subclasses should override this.
+        """
+        return 0
+
+    def __call__(self, time = None):
+        """ When called, return the value, optionally at a specific time
+        Args:
+            time [Optional(1d np.array)]: The times to obtain data from
+        """
+        raise NotImplementedError()
+
+    def __str__(self):
+        """ Stringification: summary
+        """
+        string = (
+        " \"{name}\" \n"
+        "--- {id} ---\n"
+        "{value}"
+        ).format(id=self.id,name=self.name,value=self.value)
+        return string
+        
 
 
 class SetOfInterfaceValues(collections.MutableMapping,utils.ReprObject):
@@ -83,7 +122,7 @@ class SetOfInterfaceValues(collections.MutableMapping,utils.ReprObject):
     def elements(self):
         """ return the list of values
         """
-        return list(self.store.values())
+        return [self.store[x] for x in sorted(self.store)]
 
     @elements.setter
     def elements(self, newelements):
@@ -144,21 +183,48 @@ class SetOfInterfaceValues(collections.MutableMapping,utils.ReprObject):
     def __len__(self):
         return len(self.store)
 
+    def __str__(self):
+        """ Stringification: summary
+        """
+        string = "\n\n".join(str(x) for x in self.elements)
+        if string:
+            return string
+        else:
+            return "none"
+
 
 class ForcingValue(InterfaceValue):
     """ Class for forcing values
     """
-    pass
+    @property
+    def _default_id(self):
+        return "unnamed_forcing_value"
+
+    @property
+    def _default_name(self):
+        return "unnamed forcing value"
 
 class Parameter(InterfaceValue):
     """ Class for parameters
     """
-    pass
+    @property
+    def _default_id(self):
+        return "unnamed_parameter"
+
+    @property
+    def _default_name(self):
+        return "unnamed parameter"
 
 class StateVariable(InterfaceValue):
     """ Class for state variables
     """
-    pass
+    @property
+    def _default_id(self):
+        return "unnamed_state_variable"
+
+    @property
+    def _default_name(self):
+        return "unnamed state variable"
 
 
 class SetOfParameters(SetOfInterfaceValues):

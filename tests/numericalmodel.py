@@ -36,7 +36,7 @@ class ReprObjectTest(BasicTest):
             self.logger.debug("object of class {} with empty constructor:" 
                 "\n{}".format(cls,obj))
             self.assertEqual(
-                str(eval(repr(obj))), # evaluated __repr__
+                repr(eval(repr(obj))), # evaluated __repr__
                 # should equal
                 repr(obj) # __repr__ itself
                 )

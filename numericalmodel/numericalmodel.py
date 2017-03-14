@@ -12,14 +12,14 @@ class NumericalModel(GenericModel):
     """ Class for numerical models
     """
     def __init__(self,
-            name = "unnamed numerical model",
-            version = "0.0.1",
-            description = "a numerical model",
-            long_description = "This is a numerical model.",
-            authors = "anonymous",
-            parameters = interfaces.SetOfParameters(),
-            forcing = interfaces.SetOfForcingValues(),
-            variables = interfaces.SetOfStateVariables(),
+            name = None,
+            version = None,
+            description = None,
+            long_description = None,
+            authors = None,
+            parameters = None,
+            forcing = None,
+            variables = None,
             ):
         """ Class constructor
         Args:
@@ -48,13 +48,34 @@ class NumericalModel(GenericModel):
         self.logger = logging.getLogger(__name__) # logger
 
         # set properties
-        self.parameters = parameters
-        self.forcing = forcing
-        self.variables = variables
+        if parameters is None: self.parameters = self._default_parameters
+        else:                  self.parameters = parameters
+        if forcing is None: self.forcing = self._default_forcing
+        else:               self.forcing = forcing
+        if variables is None: self.variables = self._default_variables
+        else:                 self.variables = variables
 
     ##################
     ### Properties ###
     ##################
+    @property
+    def _default_name(self):
+        """ Default name if none was given
+        """
+        return "numerical model"
+
+    @property
+    def _default_description(self):
+        """ Default description if none was given
+        """
+        return "a numerical model"
+
+    @property
+    def _default_long_description(self):
+        """ Default long_description if none was given
+        """
+        return "This is a numerical model."
+
     @property
     def parameters(self):
         try:                   self._parameters # already defined?
@@ -66,6 +87,12 @@ class NumericalModel(GenericModel):
         assert issubclass(newparameters.__class__, interfaces.SetOfParameters),\
             "parameters has to be object of subclass of SetOfParameters"
         self._parameters = newparameters
+
+    @property
+    def _default_parameters(self):
+        """ Default parameters if none were given
+        """
+        return interfaces.SetOfParameters()
 
     @property
     def forcing(self):
@@ -80,6 +107,12 @@ class NumericalModel(GenericModel):
         self._forcing = newforcing
 
     @property
+    def _default_forcing(self):
+        """ Default forcing if none was given
+        """
+        return interfaces.SetOfForcingValues()
+
+    @property
     def variables(self):
         try:                   self._variables # already defined?
         except AttributeError: # default
@@ -92,3 +125,38 @@ class NumericalModel(GenericModel):
             interfaces.SetOfStateVariables), \
             "variables has to be object of subclass of SetOfStateVariables"
         self._variables = newvariables
+
+    @property
+    def _default_variables(self):
+        """ Default variables if none were given
+        """
+        return interfaces.SetOfStateVariables()
+
+    def __str__(self):
+        """ Stringification: summary
+        """
+        # GenericModel stringificator
+        gm_string = GenericModel.__str__(self)
+
+        string = (
+            "{gm_string}\n\n"
+            "#################\n"
+            "### Variables ###\n"
+            "#################\n\n"
+            "{variables}\n\n"
+            "##################\n"
+            "### Parameters ###\n"
+            "##################\n\n"
+            "{parameters}\n\n"
+            "###############\n"
+            "### Forcing ###\n"
+            "###############\n\n"
+            "{forcing}\n"
+            ).format(
+            gm_string = gm_string,
+            parameters = self.parameters,
+            variables = self.variables,
+            forcing = self.forcing,
+            )
+
+        return string
