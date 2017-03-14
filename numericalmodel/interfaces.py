@@ -17,14 +17,20 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         name = None,
         id = None,
         value = None,
+        time_function = None,
         ):
         """ Class constructor
         Args:
             name (str): value name
             id (str): unique id
             value (numeric): numeric value. Will be converted to np.array
+            time_function (callable): function that returns the model time as 
+                utc unix timestamp
         """
         # set properties
+        if time_function is None:  
+            self.time_function = self._default_time_function
+        else:             self.time_function = time_function
         if name is None:  self.name = self._default_name
         else:             self.name = name
         if id is None:    self.id = self._default_id
@@ -35,6 +41,25 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
     ##################
     ### Properties ###
     ##################
+    @property
+    def time_function(self):
+        try:                   self._time_function # already defined?
+        except AttributeError: self._time_function = self._default_time_function
+        return self._time_function # return
+
+    @time_function.setter
+    def time_function(self,newtime_function):
+        assert hasattr(newtime_function,'__call__'), \
+            "time_function has to be callable"
+        self._time_function = newtime_function 
+
+    @property
+    def _default_time_function(self):
+        """ Default time_function if none was given. Subclasses should
+        overrtime_functione this.  
+        """
+        return utils.utcnow
+
     @property
     def id(self):
         try:                   self._id # already defined?

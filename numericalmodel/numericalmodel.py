@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 # system modules
 import logging
+import datetime
 
 # internal modules
 from .genericmodel import GenericModel
 from . import interfaces
+from . import utils
 
 # external modules
+import numpy as np
 
 class NumericalModel(GenericModel):
     """ Class for numerical models
@@ -17,6 +20,7 @@ class NumericalModel(GenericModel):
             description = None,
             long_description = None,
             authors = None,
+            initial_time = None,
             parameters = None,
             forcing = None,
             variables = None,
@@ -31,6 +35,7 @@ class NumericalModel(GenericModel):
                 str: name of single author
                 list: list of author names
                 dict: dict of {'task': ['name1','name1']} pairs
+            initial_time (float): initial model time (UTC unix timestamp)
             parameters (SetOfParameters): model parameters
             forcing (SetOfForcingValues): model forcing
             variables (SetOfStateVariables): model state variables
@@ -48,6 +53,8 @@ class NumericalModel(GenericModel):
         self.logger = logging.getLogger(__name__) # logger
 
         # set properties
+        if initial_time is None: self.initial_time = self._default_initial_time
+        else:                    self.initial_time = initial_time
         if parameters is None: self.parameters = self._default_parameters
         else:                  self.parameters = parameters
         if forcing is None: self.forcing = self._default_forcing
@@ -58,6 +65,24 @@ class NumericalModel(GenericModel):
     ##################
     ### Properties ###
     ##################
+    @property
+    def initial_time(self):
+        """ Default name if none was given
+        """
+        try:                   self._initial_time
+        except AttributeError: self._initial_time = self._default_initial_time
+        return self._initial_time
+
+    @initial_time.setter
+    def initial_time(self,newtime):
+        assert utils.is_numeric(newtime), "initial_time has to be numeric"
+        assert np.array(newtime).size == 1, "initial_time has to be one value"
+        self._initial_time = newtime
+
+    @property
+    def _default_initial_time(self):
+        return utils.utcnow()
+
     @property
     def _default_name(self):
         """ Default name if none was given
@@ -132,6 +157,26 @@ class NumericalModel(GenericModel):
         """
         return interfaces.SetOfStateVariables()
 
+    @property
+    def model_time(self):
+        try:                   self._model_time # already defined?
+        except AttributeError: self._model_time = self.initial_time # default
+        return self._model_time # return
+
+    @model_time.setter
+    def model_time(self, newtime):
+        assert utils.is_numeric(newtime), "model_time has to be numeric"
+        assert np.array(newtime).size == 1, "model_time has to be one value"
+        self._modelinitial_time = newtime
+
+    ###############
+    ### Methods ###
+    ###############
+    def get_model_time(self):
+        """ The current model time
+        """
+        return self.model_time
+
     def __str__(self):
         """ Stringification: summary
         """
@@ -140,6 +185,10 @@ class NumericalModel(GenericModel):
 
         string = (
             "{gm_string}\n\n"
+            "##################\n"
+            "### Model data ###\n"
+            "##################\n\n"
+            "initial time: {initialtime}\n\n"
             "#################\n"
             "### Variables ###\n"
             "#################\n\n"
@@ -153,6 +202,7 @@ class NumericalModel(GenericModel):
             "###############\n\n"
             "{forcing}\n"
             ).format(
+            initialtime = self.initial_time,
             gm_string = gm_string,
             parameters = self.parameters,
             variables = self.variables,

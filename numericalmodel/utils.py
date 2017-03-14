@@ -4,10 +4,12 @@ import logging
 import warnings
 import inspect
 import re
+import datetime
 
 # internal modules
 
 # external modules
+import numpy as np
 
 
 ######################
@@ -23,6 +25,13 @@ def is_numeric(x):
     """
     attrs = ['__add__', '__sub__', '__mul__', '__truediv__', '__pow__']
     return all(hasattr(x, attr) for attr in attrs)
+
+def utcnow():
+    """ Return the current utc unix timestamp
+    """
+    ts = (datetime.datetime.utcnow() - datetime.datetime(1970,1,1)
+        ).total_seconds()
+    return ts
 
 ####################
 ### util classes ###
@@ -63,16 +72,16 @@ class ReprObject(object):
         arguments and properties that are named equally.
     """
     @classmethod
-    def _full_string_of_class(clss,cls):
-        """ Get the full string of a class
+    def _full_variable_path(cls,var):
+        """ Get the full string of a variable
         Args:
-            cls (class): The class to get the full string from
+            var (variable): The variable to get the full string from
         Returns:
-            class_str (str): The full usable class string including the module
+            class_str (str): The full usable variable string including the
+                module 
         """
-        assert inspect.isclass(cls), "cls needs to be class"
         string = "{module}.{name}".format(
-            name=cls.__name__,module=cls.__module__)
+            name=var.__name__,module=var.__module__)
         return(string)
 
     def __repr__(self):
@@ -80,20 +89,19 @@ class ReprObject(object):
         """
         indent = "    "
         # the current "full" classname
-        classname = self._full_string_of_class(self.__class__)
+        classname = self._full_variable_path(self.__class__)
 
         # get a dict of {'argname':'property value'} from init arguments
         init_arg_names = inspect.getfullargspec(self.__init__).args
         init_args = {} # start with empty dict
         for arg in init_arg_names:
-            if arg == "self": continue
+            if arg == "self": continue # TODO hard-coded 'self' is bad
             try:
                 attr = getattr(self,arg) # get the attribute
-                if inspect.isclass(attr): # if it is a class
-                    # convert to Python-like class string
-                    string = self._full_string_of_class(attr)
-                else: # not a class
-                    string = repr(attr) # just the repr of the attribute
+                try:
+                    string = self._full_variable_path(attr)
+                except:
+                    string = repr(attr)
 
                 # indent the arguments
                 init_args[arg] = re.sub( 

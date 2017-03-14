@@ -151,12 +151,17 @@ class GenericModel(utils.LoggerObject,utils.ReprObject):
             author_str = "?"
 
         string = (
-            "#################################\n"
+            "###\n"
             "### \"{name}\" \n"
+            "### - {description} -\n"
             "###  version {version}\n"
-            "#################################\n"
+            "###\n\n"
             "by:\n"
-            "{authors}"
+            "{authors}\n\n"
+
+            "{description}\n"
+            "--------------------------------------------------------------\n"
+            "{long_description}\n\n"
             ).format( 
             name = self.name,
             version = self.version,
