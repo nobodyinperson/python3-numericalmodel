@@ -2,6 +2,7 @@
 # system modules
 import logging
 import datetime
+import textwrap
 
 # internal modules
 from .genericmodel import GenericModel
@@ -183,25 +184,36 @@ class NumericalModel(GenericModel):
         # GenericModel stringificator
         gm_string = GenericModel.__str__(self)
 
-        string = (
-            "{gm_string}\n\n"
-            "##################\n"
-            "### Model data ###\n"
-            "##################\n\n"
-            "initial time: {initialtime}\n\n"
-            "#################\n"
-            "### Variables ###\n"
-            "#################\n\n"
-            "{variables}\n\n"
-            "##################\n"
-            "### Parameters ###\n"
-            "##################\n\n"
-            "{parameters}\n\n"
-            "###############\n"
-            "### Forcing ###\n"
-            "###############\n\n"
-            "{forcing}\n"
-            ).format(
+        string = textwrap.dedent(
+            """
+            {gm_string}
+            
+            ##################
+            ### Model data ###
+            ##################
+
+            initial time: {initialtime}
+
+            #################
+            ### Variables ###
+            #################
+
+            {variables}
+
+            ##################
+            ### Parameters ###
+            ##################
+
+            {parameters}
+
+            ###############
+            ### Forcing ###
+            ###############
+
+            {forcing}
+
+            """
+            ).strip().format(
             initialtime = self.initial_time,
             gm_string = gm_string,
             parameters = self.parameters,
