@@ -30,7 +30,7 @@ setup(
             'Topic :: Software Development :: Libraries :: Python Modules',
         ],
     test_suite = 'tests',
-    tests_require = [  ],
-    install_requires = [  ],
+    tests_require = [ 'numpy' ],
+    install_requires = [ 'numpy' ],
     packages = find_packages(exclude=['tests']),
     )
