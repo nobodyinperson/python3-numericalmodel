@@ -66,10 +66,10 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         self._value = np.asarray(newvalue) # convert to numpy array
 
 
-class SetOfInterfaceValues(collections.MutableMapping):
+class SetOfInterfaceValues(collections.MutableMapping,utils.ReprObject):
     """ Base class for sets of interface values
     """
-    def __init__(self, elements, value_type = InterfaceValue):
+    def __init__(self, elements = [], value_type = InterfaceValue):
         self.store = dict() # empty dict
 
         # set properties
@@ -144,25 +144,6 @@ class SetOfInterfaceValues(collections.MutableMapping):
     def __len__(self):
         return len(self.store)
 
-    def __repr__(self):
-        """ Python representation of this object
-        """
-        classname = "{module}.{name}".format(
-                name=self.__class__.__name__,module=self.__class__.__module__)
-        value_type = "{module}.{name}".format(
-                name=self.value_type.__name__,module=self.value_type.__module__)
-        reprstr = \
-        ("{classname}(\n" 
-        "    value_type = {value_type},\n"
-        "    {data}\n" 
-        ")").format( 
-            classname = classname,
-            value_type = value_type,
-            data = self.store.__repr__(),
-            )
-        return reprstr
-
-        
 
 class ForcingValue(InterfaceValue):
     """ Class for forcing values
@@ -188,6 +169,14 @@ class SetOfParameters(SetOfInterfaceValues):
             value_type = Parameter, # only parameter belong here
             elements = parameters,  # these parameters
             )
+
+    @property
+    def parameters(self):
+        return self.elements
+
+    @parameters.setter
+    def parameters(self, newparameters):
+        self.elements = newparameters
         
 class SetOfForcingValues(SetOfInterfaceValues):
     """ Class for a set of forcing values
@@ -197,6 +186,14 @@ class SetOfForcingValues(SetOfInterfaceValues):
             value_type = ForcingValue, # only parameter belong here
             elements = forcingvalues,  # these forcingvalues
             )
+
+    @property
+    def forcingvalues(self):
+        return self.elements
+
+    @forcingvalues.setter
+    def forcingvalues(self, newforcingvalues):
+        self.elements = newforcingvalues
         
 class SetOfStateVariables(SetOfInterfaceValues):
     """ Class for a set of state variables
@@ -206,4 +203,11 @@ class SetOfStateVariables(SetOfInterfaceValues):
             value_type = StateVariable, # only parameter belong here
             elements = statevariables,  # these variables
             )
-        
+
+    @property
+    def statevariables(self):
+        return self.elements
+
+    @statevariables.setter
+    def statevariables(self, newstatevariables):
+        self.elements = newstatevariables

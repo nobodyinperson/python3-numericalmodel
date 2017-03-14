@@ -6,6 +6,7 @@ import os
 # External modules
 
 # Internal modules
+from . import numericalmodel
 
 from . import test_data
 from . import test_flow
@@ -21,7 +22,7 @@ def runtest(module, verbose=False):
 
 # run all tests
 def runall(verbose=False):
-    for module in []:
+    for module in [numericalmodel]:
         runtest(module=module,verbose=verbose)
         print()
 

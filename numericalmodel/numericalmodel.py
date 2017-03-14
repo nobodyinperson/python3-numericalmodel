@@ -17,6 +17,9 @@ class NumericalModel(GenericModel):
             description = "a numerical model",
             long_description = "This is a numerical model.",
             authors = "anonymous",
+            parameters = interfaces.SetOfParameters(),
+            forcing = interfaces.SetOfForcingValues(),
+            variables = interfaces.SetOfStateVariables(),
             ):
         """ Class constructor
         Args:
@@ -28,6 +31,9 @@ class NumericalModel(GenericModel):
                 str: name of single author
                 list: list of author names
                 dict: dict of {'task': ['name1','name1']} pairs
+            parameters (SetOfParameters): model parameters
+            forcing (SetOfForcingValues): model forcing
+            variables (SetOfStateVariables): model state variables
         """
 
         # GenericModel constructor
@@ -41,6 +47,11 @@ class NumericalModel(GenericModel):
 
         self.logger = logging.getLogger(__name__) # logger
 
+        # set properties
+        self.parameters = parameters
+        self.forcing = forcing
+        self.variables = variables
+
     ##################
     ### Properties ###
     ##################
@@ -52,7 +63,7 @@ class NumericalModel(GenericModel):
 
     @parameters.setter
     def parameters(self,newparameters):
-        assert issubclass(newparameters, interfaces.SetOfParameters), \
+        assert issubclass(newparameters.__class__, interfaces.SetOfParameters),\
             "parameters has to be object of subclass of SetOfParameters"
         self._parameters = newparameters
 
@@ -64,7 +75,7 @@ class NumericalModel(GenericModel):
 
     @forcing.setter
     def forcing(self,newforcing):
-        assert issubclass(newforcing, interfaces.SetOfValues), \
+        assert issubclass(newforcing.__class__, interfaces.SetOfForcingValues),\
             "forcing has to be object of subclass of SetOfForcingValues"
         self._forcing = newforcing
 
@@ -77,6 +88,7 @@ class NumericalModel(GenericModel):
 
     @variables.setter
     def variables(self,newvariables):
-        assert issubclass(newvariables, interfaces.SetOfStateVariables), \
+        assert issubclass(newvariables.__class__, 
+            interfaces.SetOfStateVariables), \
             "variables has to be object of subclass of SetOfStateVariables"
         self._variables = newvariables

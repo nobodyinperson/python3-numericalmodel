@@ -3,11 +3,11 @@
 import logging
 
 # internal modules
-from .utils import *
+from . import utils
 
 # external modules
 
-class GenericModel(LoggerObject,ReprObject):
+class GenericModel(utils.LoggerObject,utils.ReprObject):
     """ Base class for models
     """
     def __init__(self,

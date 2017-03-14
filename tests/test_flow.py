@@ -69,3 +69,13 @@ def read_json_from_file(filename):
             return json.load(f)
     except: # didn't work, return empty dict
         return {}
+
+# get all subclasses of a given class
+def all_subclasses(cls):
+    subclasses = set()
+
+    for subclass in cls.__subclasses__():
+        subclasses.add(subclass)
+        subclasses.update(all_subclasses(subclass))
+
+    return subclasses

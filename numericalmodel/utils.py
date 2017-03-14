@@ -3,6 +3,7 @@
 import logging
 import warnings
 import inspect
+import re
 
 # internal modules
 
@@ -61,12 +62,25 @@ class ReprObject(object):
     """ Simple base class that defines a __repr__ method based on its __init__
         arguments and properties that are named equally.
     """
+    @classmethod
+    def _full_string_of_class(clss,cls):
+        """ Get the full string of a class
+        Args:
+            cls (class): The class to get the full string from
+        Returns:
+            class_str (str): The full usable class string including the module
+        """
+        assert inspect.isclass(cls), "cls needs to be class"
+        string = "{module}.{name}".format(
+            name=cls.__name__,module=cls.__module__)
+        return(string)
+
     def __repr__(self):
         """ python representation of this object
         """
+        indent = "    "
         # the current "full" classname
-        classname = "{module}.{name}".format(
-                name=self.__class__.__name__,module=self.__class__.__module__)
+        classname = self._full_string_of_class(self.__class__)
 
         # get a dict of {'argname':'property value'} from init arguments
         init_arg_names = inspect.getfullargspec(self.__init__).args
@@ -74,7 +88,19 @@ class ReprObject(object):
         for arg in init_arg_names:
             if arg == "self": continue
             try:
-                init_args[arg] = getattr(self,arg).__repr__()
+                attr = getattr(self,arg) # get the attribute
+                if inspect.isclass(attr): # if it is a class
+                    # convert to Python-like class string
+                    string = self._full_string_of_class(attr)
+                else: # not a class
+                    string = repr(attr) # just the repr of the attribute
+
+                # indent the arguments
+                init_args[arg] = re.sub( 
+                    string = string,
+                    pattern = "\n",
+                    repl = "\n" + indent,
+                    )
             except AttributeError: # no such attribute
                 warnstr = ("class {cls} has no property or attribute " 
                     "'{arg}' like the argument in its __init__. Cannot include " 
@@ -85,12 +111,12 @@ class ReprObject(object):
         # create "arg = {arg}" string list for reprformat
         args_kv = []
         for arg in init_args.keys():
-            args_kv.append("    {arg} = {{{arg}}}".format(arg=arg))
+            args_kv.append(indent + "{arg} = {{{arg}}}".format(arg=arg))
 
         # create the format string
         if args_kv: # if there are arguments
             reprformatstr = "\n".join([
-                "{____classname}(", ",\n".join(args_kv), ")", ])
+                "{____classname}(", ",\n".join(args_kv), indent+")", ])
         else: # no arguments
             reprformatstr = "{____classname}()"
             
