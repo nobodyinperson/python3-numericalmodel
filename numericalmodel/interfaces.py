@@ -17,6 +17,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         name = None,
         id = None,
         value = None,
+        unit = None,
         time_function = None,
         ):
         """ Class constructor
@@ -24,6 +25,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
             name (str): value name
             id (str): unique id
             value (numeric): numeric value. Will be converted to np.array
+            unit (str): physical unit of value
             time_function (callable): function that returns the model time as 
                 utc unix timestamp
         """
@@ -33,6 +35,8 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         else:             self.time_function = time_function
         if name is None:  self.name = self._default_name
         else:             self.name = name
+        if unit is None:  self.unit = self._default_unit
+        else:             self.unit = unit
         if id is None:    self.id = self._default_id
         else:             self.id = id
         if value is None: self.value = self._default_value
@@ -76,6 +80,23 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         """ Default id if none was given. Subclasses should override this.
         """
         return "unnamed_variable"
+
+    @property
+    def unit(self):
+        try:                   self._unit # already defined?
+        except AttributeError: self._unit = self._default_unit # default
+        return self._unit # return
+
+    @unit.setter
+    def unit(self,newunit):
+        assert isinstance(newunit,str), "unit has to be str"
+        self._unit = newunit 
+
+    @property
+    def _default_unit(self):
+        """ Default unit if none was given. Subclasses should override this.
+        """
+        return "1"
 
     @property
     def name(self):
@@ -123,9 +144,9 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         """
         string = (
         " \"{name}\" \n"
-        "--- {id} ---\n"
+        "--- {id} [{unit}] ---\n"
         "{value}"
-        ).format(id=self.id,name=self.name,value=self.value)
+        ).format(id=self.id,unit=self.unit,name=self.name,value=self.value)
         return string
         
 
