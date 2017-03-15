@@ -211,7 +211,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         string = (
         " \"{name}\" \n"
         "--- {id} [{unit}] ---\n"
-        "currently: {value} {unit}\n"
+        "currently: {value} [{unit}]\n"
         "{nr} total recorded values"
         ).format(id=self.id,unit=self.unit,
         name=self.name,value=value,nr=self.values.size)
@@ -315,6 +315,11 @@ class SetOfInterfaceValues(collections.MutableMapping,utils.ReprObject):
             return string
         else:
             return "none"
+
+    def __call__(self,id):
+        """ When called, return the InterfaceValue's VALUE
+        """
+        return self[id].value
 
 
 class ForcingValue(InterfaceValue):
