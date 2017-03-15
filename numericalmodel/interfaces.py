@@ -19,12 +19,17 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         value = None,
         unit = None,
         time_function = None,
+        values = None,
+        times = None,
         ):
         """ Class constructor
         Args:
             name (str): value name
             id (str): unique id
             value (numeric): numeric value. Will be converted to np.array
+            values (1d np.array): all values this InterfaceValue had in 
+                chronological order
+            times (1d np.array): the corresponding times to values
             unit (str): physical unit of value
             time_function (callable): function that returns the model time as 
                 utc unix timestamp
@@ -41,6 +46,10 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         else:             self.id = id
         if value is None: self.value = self._default_value
         else:             self.value = value
+        if values is None:self.values = self._default_values
+        else:             self.values = values
+        if times is None: self.times = self._default_times
+        else:             self.times = times
 
     ##################
     ### Properties ###
@@ -124,7 +133,51 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
     @value.setter
     def value(self,newvalue):
         assert utils.is_numeric(newvalue), "value has to be numeric"
-        self._value = np.asarray(newvalue) # convert to numpy array
+        val = np.asarray(newvalue) # convert to numpy array
+        assert val.size == 1, "value has to be of size one"
+        self._value = val
+        # append to log
+        self.times = np.append(self.times, self.time_function())
+        self.values = np.append(self.values, self.value)
+
+    @property
+    def values(self):
+        """ All values this InterfaceValue has ever had in chronological order
+        """
+        try:                   self._values # already defined?
+        except AttributeError: self._values = self._default_times # default
+        return self._values # return
+
+    @values.setter
+    def values(self,newvalues):
+        assert isinstance(newvalues,np.ndarray), "values have to be np.array"
+        assert newvalues.size == np.prod(newvalues.shape), \
+            "values have to be one-dimensional" 
+        self._values = newvalues
+
+    @property
+    def _default_values(self):
+        return np.array([]) # empty array
+
+    @property
+    def times(self):
+        """ All times this InterfaceValue has ever been changed in chronological
+        order 
+        """
+        try:                   self._times # already defined?
+        except AttributeError: self._times = self._default_times # default
+        return self._times # return
+
+    @times.setter
+    def times(self,newtimes):
+        assert isinstance(newtimes,np.ndarray), "times have to be np.array"
+        assert newtimes.size == np.prod(newtimes.shape), \
+            "times have to be one-dimensional" 
+        self._times = newtimes
+
+    @property
+    def _default_times(self):
+        return np.array([]) # empty array
 
     @property
     def _default_value(self):

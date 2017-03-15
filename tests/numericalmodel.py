@@ -11,7 +11,7 @@ from .test_data import *
 from .test_flow import *
 
 # external modules
-from numpy import array
+from numpy import * 
 
 # skip everything
 SKIPALL = False # by default, don't skip everything
