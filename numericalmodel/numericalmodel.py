@@ -113,6 +113,7 @@ class NumericalModel(GenericModel):
         assert issubclass(newparameters.__class__, interfaces.SetOfParameters),\
             "parameters has to be object of subclass of SetOfParameters"
         self._parameters = newparameters
+        self._parameters.time_function = self.get_model_time # set time function
 
     @property
     def _default_parameters(self):
@@ -131,6 +132,7 @@ class NumericalModel(GenericModel):
         assert issubclass(newforcing.__class__, interfaces.SetOfForcingValues),\
             "forcing has to be object of subclass of SetOfForcingValues"
         self._forcing = newforcing
+        self._forcing.time_function = self.get_model_time # set time function
 
     @property
     def _default_forcing(self):
@@ -151,6 +153,7 @@ class NumericalModel(GenericModel):
             interfaces.SetOfStateVariables), \
             "variables has to be object of subclass of SetOfStateVariables"
         self._variables = newvariables
+        self._variables.time_function = self.get_model_time # set time function
 
     @property
     def _default_variables(self):

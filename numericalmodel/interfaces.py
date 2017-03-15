@@ -16,7 +16,6 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
     def __init__(self,
         name = None,
         id = None,
-        value = None,
         unit = None,
         time_function = None,
         values = None,
@@ -26,7 +25,6 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         Args:
             name (str): value name
             id (str): unique id
-            value (numeric): numeric value. Will be converted to np.array
             values (1d np.array): all values this InterfaceValue had in 
                 chronological order
             times (1d np.array): the corresponding times to values
@@ -44,12 +42,11 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         else:             self.unit = unit
         if id is None:    self.id = self._default_id
         else:             self.id = id
-        if value is None: self.value = self._default_value
-        else:             self.value = value
         if values is None:self.values = self._default_values
         else:             self.values = values
         if times is None: self.times = self._default_times
         else:             self.times = times
+
 
     ##################
     ### Properties ###
@@ -126,19 +123,16 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
 
     @property
     def value(self):
-        try:                   self._value # already defined?
-        except AttributeError: self._value = self._default_value # default
-        return self._value # return
+        return self() # call us
 
     @value.setter
     def value(self,newvalue):
         assert utils.is_numeric(newvalue), "value has to be numeric"
         val = np.asarray(newvalue) # convert to numpy array
         assert val.size == 1, "value has to be of size one"
-        self._value = val
         # append to log
         self.times = np.append(self.times, self.time_function())
-        self.values = np.append(self.values, self.value)
+        self.values = np.append(self.values, val)
 
     @property
     def values(self):
@@ -179,27 +173,48 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
     def _default_times(self):
         return np.array([]) # empty array
 
-    @property
-    def _default_value(self):
-        """ Default value if none was given. Subclasses should override this.
-        """
-        return 0
-
-    def __call__(self, time = None):
+    def __call__(self, times = None):
         """ When called, return the value, optionally at a specific time
         Args:
-            time [Optional(1d np.array)]: The times to obtain data from
+            times [Optional(numeric)]: The times to obtain data from
         """
-        raise NotImplementedError()
+        assert self.times.size, "no values recorded yet"
+        if times is None: # no time given
+            times = self.time_function() # use current time
+        assert utils.is_numeric(times), "times have to be numeric"
+        times = np.asarray(times) # convert to numpy array
+
+        res = np.array([]) # start with empty resulting array
+
+        for t in times.flatten(): # inefficient loop over array, I know...
+            diff = t - self.times # difference
+            # self.logger.debug("given times {} minus recorded times" 
+            #     " {}: {}".format(t,self.times,diff))
+            diff = np.ma.masked_less(diff, 0) # drop negative differences
+            # self.logger.debug("negative differences dropped: {}".format(diff))
+            assert not diff.mask.all(), ("time '{t}' is too early. " 
+                "Earliest time is '{early}'").format(t=t,early=self.times.min())
+            indices = np.ma.where(diff == diff.min()) # indices of "left" time
+            # self.logger.debug("indices of left-time: {}".format(indices))
+            val = self.values[indices] # get the corresponding value
+            # self.logger.debug("corresponding value: {}".format(val))
+            res = np.append(res, val) # append to resulting array
+            # self.logger.debug("appended res: {}".format(res))
+        
+        return res.reshape(times.shape) # reshape back
 
     def __str__(self):
         """ Stringification: summary
         """
+        if self.values.size: value = self.value
+        else:                value = "?"
         string = (
         " \"{name}\" \n"
         "--- {id} [{unit}] ---\n"
-        "{value}"
-        ).format(id=self.id,unit=self.unit,name=self.name,value=self.value)
+        "currently: {value} {unit}\n"
+        "{nr} total recorded values"
+        ).format(id=self.id,unit=self.unit,
+        name=self.name,value=value,nr=self.values.size)
         return string
         
 
@@ -256,6 +271,16 @@ class SetOfInterfaceValues(collections.MutableMapping,utils.ReprObject):
         assert issubclass(newtype, InterfaceValue), \
             "value_type has to be subclass of InterfaceValue"
         self._value_type = newtype
+
+    @property
+    def time_function(self):
+        return [e.time_function for e in self.elements]
+
+    @time_function.setter
+    def time_function(self, newfunc):
+        assert hasattr(newfunc, '__call__'), "time_function has to be callable"
+        for e in self.elements: # set every element's time_function
+            e.time_function = newfunc
 
     ###############
     ### Methods ###
@@ -343,6 +368,7 @@ class SetOfParameters(SetOfInterfaceValues):
     def parameters(self, newparameters):
         self.elements = newparameters
         
+
 class SetOfForcingValues(SetOfInterfaceValues):
     """ Class for a set of forcing values
     """

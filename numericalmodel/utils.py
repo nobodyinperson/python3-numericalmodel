@@ -80,8 +80,13 @@ class ReprObject(object):
             class_str (str): The full usable variable string including the
                 module 
         """
-        string = "{module}.{name}".format(
-            name=var.__name__,module=var.__module__)
+        if inspect.ismethod(var): # is a method
+            string = "{module}.{cls}.{name}".format(
+                name=var.__name__,cls=var.__self__.__class__.__name__,
+                module=var.__module__)
+        else:
+            string = "{module}.{name}".format(
+                name=var.__name__,module=var.__module__)
         return(string)
 
     def __repr__(self):
