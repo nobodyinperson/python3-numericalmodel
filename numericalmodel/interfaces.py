@@ -131,8 +131,12 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         val = np.asarray(newvalue) # convert to numpy array
         assert val.size == 1, "value has to be of size one"
         # append to log
-        self.times = np.append(self.times, self.time_function())
-        self.values = np.append(self.values, val)
+        t = self.time_function()
+        if np.any(self.times == t): # time already present
+            self.values[np.where(self.times == t)] = val
+        else: # new time
+            self.times = np.append(self.times, t)
+            self.values = np.append(self.values, val)
 
     @property
     def values(self):
@@ -180,6 +184,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         """
         assert self.times.size, "no values recorded yet"
         if times is None: # no time given
+            return self.values[-1]
             times = self.time_function() # use current time
         assert utils.is_numeric(times), "times have to be numeric"
         times = np.asarray(times) # convert to numpy array

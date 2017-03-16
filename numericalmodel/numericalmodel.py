@@ -7,6 +7,7 @@ import textwrap
 # internal modules
 from .genericmodel import GenericModel
 from . import interfaces
+from . import equations
 from . import utils
 
 # external modules
@@ -22,9 +23,11 @@ class NumericalModel(GenericModel):
             long_description = None,
             authors = None,
             initial_time = None,
+            timestep = None,
             parameters = None,
             forcing = None,
             variables = None,
+            equations = None,
             ):
         """ Class constructor
         Args:
@@ -37,9 +40,11 @@ class NumericalModel(GenericModel):
                 list: list of author names
                 dict: dict of {'task': ['name1','name1']} pairs
             initial_time (float): initial model time (UTC unix timestamp)
+            timestep (float): timestep
             parameters (SetOfParameters): model parameters
             forcing (SetOfForcingValues): model forcing
             variables (SetOfStateVariables): model state variables
+            equations (SetOfEquations): model equations
         """
 
         # GenericModel constructor
@@ -62,6 +67,8 @@ class NumericalModel(GenericModel):
         else:               self.forcing = forcing
         if variables is None: self.variables = self._default_variables
         else:                 self.variables = variables
+        if equations is None: self.equations = self._default_equations
+        else:                 self.equations = equations
 
     ##################
     ### Properties ###
@@ -103,9 +110,27 @@ class NumericalModel(GenericModel):
         return "This is a numerical model."
 
     @property
+    def timestep(self):
+        try:                   self._timestep # already defined?
+        except AttributeError: self._timestep = self._default_timestep
+        return self._timestep # return
+
+    @timestep.setter
+    def timestep(self,newtimestep):
+        assert utils.is_numeric(newtimestep), "timestep has to be numeric"
+        assert np.asarray(newtimestep).size == 1, "timestep has to be one value"
+        self._timestep = newtimestep
+
+    @property
+    def _default_timestep(self):
+        """ Default timestep if none were given
+        """
+        return 1
+
+    @property
     def parameters(self):
         try:                   self._parameters # already defined?
-        except AttributeError: self._parameters = interfaces.SetOfParameters()
+        except AttributeError: self._parameters = self._default_parameters
         return self._parameters # return
 
     @parameters.setter
@@ -124,7 +149,7 @@ class NumericalModel(GenericModel):
     @property
     def forcing(self):
         try:                   self._forcing # already defined?
-        except AttributeError: self._forcing = interfaces.SetOfForcingValues() 
+        except AttributeError: self._forcing = self._default_parameters
         return self._forcing # return
 
     @forcing.setter
@@ -162,6 +187,26 @@ class NumericalModel(GenericModel):
         return interfaces.SetOfStateVariables()
 
     @property
+    def equations(self):
+        try:                   self._equations # already defined?
+        except AttributeError: self._equations = self._default_equations
+        return self._equations # return
+
+    @equations.setter
+    def equations(self,newequations):
+        assert issubclass(newequations.__class__, equations.SetOfEquations),\
+            "equations has to be object of subclass of SetOfequations"
+        self._equations = newequations
+        self._equations.time_function = self.get_model_time # set time function
+
+    @property
+    def _default_equations(self):
+        """ Default equations if none were given
+        """
+        return equations.SetOfEquations()
+
+
+    @property
     def model_time(self):
         try:                   self._model_time # already defined?
         except AttributeError: self._model_time = self.initial_time # default
@@ -171,7 +216,7 @@ class NumericalModel(GenericModel):
     def model_time(self, newtime):
         assert utils.is_numeric(newtime), "model_time has to be numeric"
         assert np.array(newtime).size == 1, "model_time has to be one value"
-        self._modelinitial_time = newtime
+        self._model_time = newtime
 
     ###############
     ### Methods ###
@@ -180,6 +225,28 @@ class NumericalModel(GenericModel):
         """ The current model time
         """
         return self.model_time
+
+    def integrate(self, final_time):
+        """ Integrate the model until final_time
+        Args:
+            final_time (float): time to integrate until
+        """
+        self.logger.debug("start integration")
+        while self.model_time < final_time:
+            self.logger.debug("current model time {} is smaller than " 
+                "final time {}".format(self.model_time, final_time))
+            time_left = final_time - self.model_time
+            if time_left > self.timestep: # another maximum timestep fits
+                timestep = self.timestep
+            else: # fill the gap with small timestep
+                timestep = time_left
+            # self.logger.debug("timestep left: {}".format(timestep))
+            self.model_time = self.model_time + timestep
+            for equation in self.equations.equations:
+                # self.logger.debug("integrate equation {}".format(
+                #     equation.description))
+                equation.integrate(final_time = self.model_time + timestep)
+        self.logger.debug("end of integration")
 
     def __str__(self):
         """ Stringification: summary
@@ -196,6 +263,7 @@ class NumericalModel(GenericModel):
             ##################
 
             initial time: {initialtime}
+            timestep : {timestep}
 
             #################
             ### Variables ###
@@ -215,13 +283,21 @@ class NumericalModel(GenericModel):
 
             {forcing}
 
+            #################
+            ### Equations ###
+            #################
+
+            {equations}
+
             """
             ).strip().format(
             initialtime = self.initial_time,
+            timestep = self.timestep,
             gm_string = gm_string,
             parameters = self.parameters,
             variables = self.variables,
             forcing = self.forcing,
+            equations = self.equations, 
             )
 
         return string
