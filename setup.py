@@ -31,6 +31,6 @@ setup(
         ],
     test_suite = 'tests',
     tests_require = [ 'numpy' ],
-    install_requires = [ 'numpy' ],
+    install_requires = [ 'numpy', 'scipy' ],
     packages = find_packages(exclude=['tests']),
     )

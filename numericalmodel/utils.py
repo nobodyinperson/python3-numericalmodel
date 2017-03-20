@@ -5,11 +5,13 @@ import warnings
 import inspect
 import re
 import datetime
+import copy
 
 # internal modules
 
 # external modules
 import numpy as np
+from scipy.spatial import cKDTree
 
 
 ######################
@@ -142,3 +144,147 @@ class ReprObject(object):
         return reprstring
 
 
+class LeftInterpolator(ReprObject, LoggerObject):
+    """ Left-sided Interpolator for 1d data
+    """
+    def __init__(self, x = None, y = None, copy = False):
+        """ class constructor
+        Args:
+            x (numeric): x values. Will be reshaped to (x.size,1).
+            y (numeric): y values. Will be reshaped to (y.size,1).
+            copy [Optional(bool)]: take shallow copies of x and y? 
+                Defaults to False.
+        """
+        # set properties
+        self.copy = copy
+        if x is None: self.x = self._default_x
+        else:         self.x = x
+        if y is None: self.y = self._default_y
+        else:         self.y = y
+
+    @property
+    def x(self):
+        try:                   self._x
+        except AttributeError: self._x = np.array([]).reshape(0,1)
+        return self._x
+
+    @x.setter
+    def x(self, value):
+        assert is_numeric(value), "x has to be numeric"
+
+        if self.copy: value = copy.copy(value) # copy if desired
+
+        value = np.asarray(value) # convert to array
+        value.shape = (value.size, 1) # reshape
+
+        self._x = value # set internal attribute
+        self.kdtree = cKDTree(data = value) # refresh kdtree
+
+    @property
+    def _default_x(self):
+        return np.array([np.nan])
+
+    @property
+    def y(self):
+        try:                   self._y
+        except AttributeError: self._y = self._default_y
+        return self._y
+
+    @y.setter
+    def y(self, value):
+        assert is_numeric(value), "y has to be numeric"
+
+        if self.copy: value = copy.copy(value) # copy if desired
+
+        value = np.asarray(value) # convert to array
+        value.shape = (value.size, 1) # reshape
+        self._y = value # set internal attribute
+
+    @property
+    def _default_y(self):
+        return np.array([np.nan])
+    
+    @property
+    def copy(self):
+        try:                   self._copy
+        except AttributeError: self._copy = False
+        return self._copy
+
+    @copy.setter
+    def copy(self, value):
+        self._copy = bool(value)
+
+    @property
+    def kdtree(self):
+        try:                   self._kdtree
+        except AttributeError: self._kdtree = cKDTree(data = self.x)
+        return self._kdtree
+
+    @kdtree.setter
+    def kdtree(self, newkdtree):
+        assert isinstance(newkdtree, cKDTree), "kdtree has to be cKDTree"
+        assert (newkdtree.n,newkdtree.m) == self.x.shape, \
+            "kdtree m and n do not match x shape"
+        self._kdtree = newkdtree
+
+    ###############
+    ### Methods ###
+    ###############
+    def __call__(self, xnew, copy = False):
+        """ When called, return the values LEFT of the given xnew values.
+        Args:
+            xnew (numeric): the x values to get the interpolated values from
+            copy [Optional(bool)]: Initially copy the xnew shallowly? Default
+            to False.  
+        Returns:
+            np.array of values
+        """
+        assert self.x.size == self.y.size, "x and y are not of same size"
+        assert is_numeric(xnew), "xnew has to be numeric"
+
+        if copy: t = copy.copy(xnew) # copy if desired
+        else:    t = xnew # keep
+
+        t = np.asarray(t) # convert to np.array
+        origshape = t.shape # save original shape
+        t.shape = (t.size,1) # reshape
+
+        self.logger.debug("query for x:\n{}".format(t))
+
+        dist, ind = self.kdtree.query( x = t, k = 2 ) # query two neighbors
+        self.logger.debug("indices of 2 nearest neighbors:\n{}".format(ind))
+        self.logger.debug("distances to 2 nearest neighbors:\n{}".format(dist))
+
+        # inf_dist = np.where(np.invert(np.isfinite(dist)))
+        # ind[inf_dist] -= 1
+
+        self.logger.debug("x:\n{}".format(self.x))
+
+        two_nearest_x = self.x[ind] # the x values of the 2 nearest neighbors
+        # two_nearest_x.shape = ind.shape # get rid of redundant dimension
+        self.logger.debug("x values of 2 nearest neighbors:\n{}".format(
+            two_nearest_x))
+        self.logger.debug("minima of x values of 2 nearest" 
+            "neighbors:\n{}".format(two_nearest_x.min(axis=1)))
+        left_neighbors_x_minpos = two_nearest_x.argmin(axis=1)
+        self.logger.debug("positions of minima of x values of 2 nearest" 
+            "neighbors:\n{}".format(left_neighbors_x_minpos))
+
+        # TODO: This is still inefficient
+        # There has to be a way to select different elements from every row
+        # than to create a huge array with duplications and then only take
+        # the diagonal elements...
+        # np.choose could be a possibility...
+        left_neighbors_ind = ind.take( 
+            left_neighbors_x_minpos, axis = 1).diagonal()
+
+        self.logger.debug("indices of LEFT nearest neighbors:\n{}".format(
+            left_neighbors_ind))
+
+        left_y = self.y[left_neighbors_ind]
+        self.logger.debug("values of LEFT nearest neighbors:\n{}".format(
+            left_y))
+
+        left_y.shape = origshape # reshape back
+
+        return left_y

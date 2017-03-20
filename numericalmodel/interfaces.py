@@ -152,6 +152,8 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         assert newvalues.size == np.prod(newvalues.shape), \
             "values have to be one-dimensional" 
         self._values = newvalues
+        if newvalues.size: # KDTree cannot handle 0-sized arrays
+            self.interpolator.y = self._values # set interpolator values
 
     @property
     def _default_values(self):
@@ -172,41 +174,47 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         assert newtimes.size == np.prod(newtimes.shape), \
             "times have to be one-dimensional" 
         self._times = newtimes
+        if newtimes.size: # KDTree cannot handle 0-sized arrays
+            self.interpolator.x = self._times # set interpolator values
 
     @property
     def _default_times(self):
         return np.array([]) # empty array
 
+    @property
+    def interpolator(self):
+        try: self._interpolator
+        except AttributeError:
+            self._interpolator = utils.LeftInterpolator( 
+            x = self.times, y = self.values) # default
+        return self._interpolator
+
+    @interpolator.setter
+    def interpolator(self, newinterp):
+        # TODO: Also allow other Interpolators?
+        assert isinstance(newinterp, LeftInterpolator), \
+            "interpolator has to be instance of LeftInterpolator"
+        self._interpolator = newinterp
+
+    ###############
+    ### Methods ###
+    ###############
     def __call__(self, times = None):
         """ When called, return the value, optionally at a specific time
         Args:
             times [Optional(numeric)]: The times to obtain data from
         """
         assert self.times.size, "no values recorded yet"
+        assert self.times.size == self.values.size, \
+            "times and values are not of same size"
         if times is None: # no time given
             return self.values[-1]
-            times = self.time_function() # use current time
         assert utils.is_numeric(times), "times have to be numeric"
+
         times = np.asarray(times) # convert to numpy array
+        interpolated = self.interpolator(times) # interpolate
+        return interpolated # return
 
-        res = np.array([]) # start with empty resulting array
-
-        for t in times.flatten(): # inefficient loop over array, I know...
-            diff = t - self.times # difference
-            # self.logger.debug("given times {} minus recorded times" 
-            #     " {}: {}".format(t,self.times,diff))
-            diff = np.ma.masked_less(diff, 0) # drop negative differences
-            # self.logger.debug("negative differences dropped: {}".format(diff))
-            assert not diff.mask.all(), ("time '{t}' is too early. " 
-                "Earliest time is '{early}'").format(t=t,early=self.times.min())
-            indices = np.ma.where(diff == diff.min()) # indices of "left" time
-            # self.logger.debug("indices of left-time: {}".format(indices))
-            val = self.values[indices] # get the corresponding value
-            # self.logger.debug("corresponding value: {}".format(val))
-            res = np.append(res, val) # append to resulting array
-            # self.logger.debug("appended res: {}".format(res))
-        
-        return res.reshape(times.shape) # reshape back
 
     def __str__(self):
         """ Stringification: summary
