@@ -104,6 +104,19 @@ class Equation(utils.LoggerObject,utils.ReprObject):
     ###############
     ### Methods ###
     ###############
+    def depends_on(self, id):
+        """ Check if this equation depends on a given InterfaceValue's id
+        Args:
+            id (str or InterfaceValue): InterfaceValue or id
+        Returns:
+            True if 'id' is in self.input, False if otherwise
+        """
+        try: ident = id.id
+        except AttributeError: ident = id
+        assert isinstance(ident,str), \
+            "id is neither str nor has it an 'id' attribute"
+        return ident in self.input.keys()
+
     def __str__(self):
         """ Stringification: summary
         """
@@ -121,58 +134,6 @@ class Equation(utils.LoggerObject,utils.ReprObject):
 class DerivativeEquation(Equation):
     """ Class to represent a derivative equation
     """
-    pass
-
-
-class PrognosticEquation(DerivativeEquation):
-    """ Class to represend prognostic equations
-    """
-    def __init__(self, variable = None, 
-        description = None, long_description = None,
-        input = None, max_timestep = None,
-        ):
-        """ Class constructor
-        Args:
-            description (str): short equation description
-            long_description (str): long equation description
-            variable (InterfaceVariable): the variable obtained by solving the
-                equation
-            input (SetOfInterfaceValues): set of values needed by the equation
-            max_timestep (numeric value): the maximum timestep in seconds
-        """
-        # super class constructor
-        DerivativeEquation.__init__(self,
-            variable = variable, description = description, long_description =
-            long_description, input = input)
-        
-        if max_timestep is None: self.max_timestep = self._default_max_timestep
-        else:                    self.max_timestep = max_timestep
-
-
-    ##################
-    ### Properties ###
-    ##################
-    @property
-    def max_timestep(self):
-        """ The maximum timesta
-        """
-        try:                   self._max_timestep # already defined?
-        except AttributeError: self._max_timestep = self._default_times # default
-        return self._max_timestep # return
-
-    @max_timestep.setter
-    def max_timestep(self,newmax_timestep):
-        assert utils.is_numeric(newmax_timestep), \
-            "max_timestep has to be numeric"
-        assert np.asarray(newmax_timestep).size == 1, \
-            "max_timestep has to be one single value" 
-        self._max_timestep = newmax_timestep
-
-    @property
-    def _default_max_timestep(self):
-        return 1 # empty array
-        
-
     ###############
     ### Methods ###
     ###############
@@ -181,95 +142,19 @@ class PrognosticEquation(DerivativeEquation):
         Args:
             times [Optional(numeric)]: the times to calculate the derivative.
                 Defaults to the current (last) time.
-            variable [Optional(StateVariable)]: the variable to use. Defaults to
-                self.variable.
+            variable [Optional(callable)]: the variable to use. Defaults to
+                self.variable. Has to be a callable that takes times and
+                returns values.
         Returns:
             the derivatives corresponding to the given times as np.array
         """
         raise NotImplementedError("subclasses should override this method")
 
-    def runge_kutta(self, timestep = None):
-        """ Integrate one step Runge-Kutta and return the value.
-        Args:
-            timestep (single numeric value): The timestep. Defaults to
-                max_timestep
-        Returns:
-            the value of self.variable after this Runge-Kutta timestep
-        """
-        if timestep is None: timestep = self.max_timestep # default
-        assert utils.is_numeric(timestep), "timestep has to be numeric"
-        assert np.asarray(timestep).size == 1, "timestep has to be one value"
 
-        raise NotImplementedError()
-
-        var_tmp = interfaces.StateVariable()
-        
-        k1 = timestep * self.derivative(variable = var_tmp)
-
-        res = self.variable.value + (k1 + 2*k2 + 2*k3 + k4) / 6
-        return res
-
-    def euler(self, timestep = None):
-        """ Integrate one step euler-forward and return the value.
-        Args:
-            timestep (single numeric value): The timestep. Defaults to
-                max_timestep
-        Returns:
-            the value of self.variable after this euler-explicit timestep
-        """
-        if timestep is None: timestep = self.max_timestep # default
-        assert utils.is_numeric(timestep), "timestep has to be numeric"
-        assert np.asarray(timestep).size == 1, "timestep has to be one value"
-
-        return self.variable.value + self.derivative() * timestep
-
-    def integrate_step(self, timestep = None):
-        """ Integrate one step forward and return - don't set - the value.
-        Args:
-            timestep (single numeric value): The timestep. Defaults to
-                max_timestep
-        Returns:
-            the value of self.variable after this timestep
-        """
-        raise NotImplementedError("subclasses should override this method")
-
-    def integrate(self, final_time = None):
-        """ Integrate the equation until final_time. Set the variable's value
-        in-place.  
-        Args:
-            final_time (single numeric value): the final time to integrate until
-        """
-        assert utils.is_numeric(final_time), "final_time has to be numeric"
-        assert np.asarray(final_time).size == 1, \
-            "final_time has to be a single value"
-
-        orig_time_func = copy.copy(self.variable.time_function) # back up time_func
-        # get current time
-        int_time_now = orig_time_func() # get current start time
-
-        assert final_time > int_time_now, "I refuse to integrate backwards!"
-
-        def int_time_func(): return int_time_now # local time function
-        self.variable.time_function = int_time_func # set local time function
-
-        while int_time_now < final_time: # as long as we have time left
-            time_left = final_time - int_time_now
-            if time_left > self.max_timestep: # another maximum timestep fits
-                timestep = self.max_timestep
-            else: # fill the gap with small timestep
-                timestep = time_left
-
-            int_time_now += timestep # set new time NOW
-
-            # integrate a step forward
-            self.variable.value = self.integrate_step(timestep = timestep)
-
-        self.variable.time_function = orig_time_func # reset to original function
-
-        return True # return success
-
-
-        
+class PrognosticEquation(DerivativeEquation):
+    """ Class to represent prognostic equations
+    """
+    pass
 
 
 class DiagnosticEquation(Equation):

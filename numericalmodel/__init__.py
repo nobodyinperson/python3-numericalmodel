@@ -7,6 +7,7 @@
 from . import genericmodel
 from . import numericalmodel
 from . import interfaces
+from . import numericalschemes
 from . import equations
 from . import utils
 

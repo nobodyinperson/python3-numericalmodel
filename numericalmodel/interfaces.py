@@ -9,6 +9,7 @@ from . import utils
 
 # external modules
 import numpy as np
+import scipy.interpolate
 
 class InterfaceValue(utils.LoggerObject,utils.ReprObject):
     """ Base class for model interface values
@@ -131,9 +132,10 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         val = np.asarray(newvalue) # convert to numpy array
         assert val.size == 1, "value has to be of size one"
         # append to log
-        t = self.time_function()
-        if np.any(self.times == t): # time already present
-            self.values[np.where(self.times == t)] = val
+        t = self.next_time
+        ind = self.times == t
+        if np.any(ind):
+            self.values[ind] = val
         else: # new time
             self.times = np.append(self.times, t)
             self.values = np.append(self.values, val)
@@ -152,10 +154,36 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         assert newvalues.size == np.prod(newvalues.shape), \
             "values have to be one-dimensional" 
         self._values = newvalues
+        # reset intepolator
+        if hasattr(self,"_interpolator"): del self._interpolator 
 
     @property
     def _default_values(self):
         return np.array([]) # empty array
+
+    @property
+    def next_time(self):
+        """ The next time to use when value is set. Defaults to the value of
+        time_function if no next_time was set.
+        """
+        try:                   next_time = self._next_time
+        except AttributeError: next_time = self.time_function()
+        if self.times.size:
+            assert next_time >= self.times.max(), \
+                "next_time has to be later than current time"
+        return next_time
+
+    @next_time.setter
+    def next_time(self, newtime):
+        assert utils.is_numeric(newtime), "next_time has to be numeric"
+        assert np.asarray(newtime).size == 1, "next_time has to be one value"
+        assert newtime >= self.times.max(), \
+            "next_time has to be later than current time"
+        self._next_time = newtime
+
+    @property
+    def time(self):
+        return self.times[-1]
 
     @property
     def times(self):
@@ -172,10 +200,27 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         assert newtimes.size == np.prod(newtimes.shape), \
             "times have to be one-dimensional" 
         self._times = newtimes
+        # reset intepolator
+        if hasattr(self,"_interpolator"): del self._interpolator 
 
     @property
     def _default_times(self):
         return np.array([]) # empty array
+
+    @property
+    def interpolator(self):
+        try: self._interpolator # try to access internal attribute
+        except AttributeError: # doesn't exist
+            self._interpolator = scipy.interpolate.interp1d( 
+                x = self.times, # the times
+                y = self.values, # the values
+                assume_sorted = True, # times are already sorted
+                copy = False, # don't copy
+                kind = "zero", # left-sided (0th-order spline is left-sided...)
+                bounds_error = False, # don't escalate on outside values
+                fill_value = (self.values.min(),self.values.max()), # fill 
+                )
+        return self._interpolator
 
     def __call__(self, times = None):
         """ When called, return the value, optionally at a specific time
@@ -189,24 +234,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         assert utils.is_numeric(times), "times have to be numeric"
         times = np.asarray(times) # convert to numpy array
 
-        res = np.array([]) # start with empty resulting array
-
-        for t in times.flatten(): # inefficient loop over array, I know...
-            diff = t - self.times # difference
-            # self.logger.debug("given times {} minus recorded times" 
-            #     " {}: {}".format(t,self.times,diff))
-            diff = np.ma.masked_less(diff, 0) # drop negative differences
-            # self.logger.debug("negative differences dropped: {}".format(diff))
-            assert not diff.mask.all(), ("time '{t}' is too early. " 
-                "Earliest time is '{early}'").format(t=t,early=self.times.min())
-            indices = np.ma.where(diff == diff.min()) # indices of "left" time
-            # self.logger.debug("indices of left-time: {}".format(indices))
-            val = self.values[indices] # get the corresponding value
-            # self.logger.debug("corresponding value: {}".format(val))
-            res = np.append(res, val) # append to resulting array
-            # self.logger.debug("appended res: {}".format(res))
-        
-        return res.reshape(times.shape) # reshape back
+        return self.interpolator(times) # return
 
     def __str__(self):
         """ Stringification: summary

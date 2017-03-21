@@ -245,7 +245,8 @@ class NumericalModel(GenericModel):
             for equation in self.equations.equations:
                 # self.logger.debug("integrate equation {}".format(
                 #     equation.description))
-                equation.integrate(final_time = self.model_time + timestep)
+                equation.integrate(current_time = self.model_time, 
+                    final_time = self.model_time + timestep)
         self.logger.debug("end of integration")
 
     def __str__(self):
