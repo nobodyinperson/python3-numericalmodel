@@ -132,8 +132,9 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         assert val.size == 1, "value has to be of size one"
         # append to log
         t = self.time_function()
-        if np.any(self.times == t): # time already present
-            self.values[np.where(self.times == t)] = val
+        present = self.times == t
+        if np.any(present): # time already present
+            self.values[np.where(present)] = val
         else: # new time
             self.times = np.append(self.times, t)
             self.values = np.append(self.values, val)
@@ -152,8 +153,9 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         assert newvalues.size == np.prod(newvalues.shape), \
             "values have to be one-dimensional" 
         self._values = newvalues
-        if newvalues.size: # KDTree cannot handle 0-sized arrays
-            self.interpolator.y = self._values # set interpolator values
+        if self.values.size: # KDTree cannot handle 0-sized arrays
+            self.interpolator.x = self.times # set interpolator values
+            self.interpolator.y = self.values # set interpolator values
 
     @property
     def _default_values(self):
@@ -174,8 +176,6 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         assert newtimes.size == np.prod(newtimes.shape), \
             "times have to be one-dimensional" 
         self._times = newtimes
-        if newtimes.size: # KDTree cannot handle 0-sized arrays
-            self.interpolator.x = self._times # set interpolator values
 
     @property
     def _default_times(self):

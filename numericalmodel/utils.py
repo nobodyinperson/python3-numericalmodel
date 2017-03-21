@@ -175,6 +175,9 @@ class LeftInterpolator(ReprObject, LoggerObject):
         if self.copy: value = copy.copy(value) # copy if desired
 
         value = np.asarray(value) # convert to array
+        assert value.size, "empty x not allowed"
+        assert np.all(np.isfinite(value)), \
+            "sorry, only finite values allowed in x" # everything finite
         value.shape = (value.size, 1) # reshape
 
         self._x = value # set internal attribute
@@ -182,7 +185,7 @@ class LeftInterpolator(ReprObject, LoggerObject):
 
     @property
     def _default_x(self):
-        return np.array([np.nan])
+        return np.array([0.0])
 
     @property
     def y(self):
@@ -197,12 +200,15 @@ class LeftInterpolator(ReprObject, LoggerObject):
         if self.copy: value = copy.copy(value) # copy if desired
 
         value = np.asarray(value) # convert to array
+        assert value.size, "empty y not allowed"
+        assert np.all(np.isfinite(value)), \
+            "sorry, only finite values allowed in y" # everything finite
         value.shape = (value.size, 1) # reshape
         self._y = value # set internal attribute
 
     @property
     def _default_y(self):
-        return np.array([np.nan])
+        return np.array([0.0])
     
     @property
     def copy(self):
@@ -246,29 +252,33 @@ class LeftInterpolator(ReprObject, LoggerObject):
         else:    t = xnew # keep
 
         t = np.asarray(t) # convert to np.array
+
+        if self.y.size == 1: # if we only have one value, interpolation is easy
+            return np.ones_like(t)*float(self.y)
+
         origshape = t.shape # save original shape
         t.shape = (t.size,1) # reshape
 
-        self.logger.debug("query for x:\n{}".format(t))
+        # self.logger.debug("query for x:\n{}".format(t))
 
         dist, ind = self.kdtree.query( x = t, k = 2 ) # query two neighbors
-        self.logger.debug("indices of 2 nearest neighbors:\n{}".format(ind))
-        self.logger.debug("distances to 2 nearest neighbors:\n{}".format(dist))
+        # self.logger.debug("indices of 2 nearest neighbors:\n{}".format(ind))
+        # self.logger.debug("distances to 2 nearest neighbors:\n{}".format(dist))
 
-        # inf_dist = np.where(np.invert(np.isfinite(dist)))
-        # ind[inf_dist] -= 1
+        inf_dist = np.where(np.invert(np.isfinite(dist)))
+        ind[inf_dist] -= 1
 
-        self.logger.debug("x:\n{}".format(self.x))
+        # self.logger.debug("x:\n{}".format(self.x))
 
         two_nearest_x = self.x[ind] # the x values of the 2 nearest neighbors
         # two_nearest_x.shape = ind.shape # get rid of redundant dimension
-        self.logger.debug("x values of 2 nearest neighbors:\n{}".format(
-            two_nearest_x))
-        self.logger.debug("minima of x values of 2 nearest" 
-            "neighbors:\n{}".format(two_nearest_x.min(axis=1)))
+        # self.logger.debug("x values of 2 nearest neighbors:\n{}".format(
+        #     two_nearest_x))
+        # self.logger.debug("minima of x values of 2 nearest" 
+        #     "neighbors:\n{}".format(two_nearest_x.min(axis=1)))
         left_neighbors_x_minpos = two_nearest_x.argmin(axis=1)
-        self.logger.debug("positions of minima of x values of 2 nearest" 
-            "neighbors:\n{}".format(left_neighbors_x_minpos))
+        # self.logger.debug("positions of minima of x values of 2 nearest" 
+        #     "neighbors:\n{}".format(left_neighbors_x_minpos))
 
         # TODO: This is still inefficient
         # There has to be a way to select different elements from every row
@@ -278,12 +288,12 @@ class LeftInterpolator(ReprObject, LoggerObject):
         left_neighbors_ind = ind.take( 
             left_neighbors_x_minpos, axis = 1).diagonal()
 
-        self.logger.debug("indices of LEFT nearest neighbors:\n{}".format(
-            left_neighbors_ind))
+        # self.logger.debug("indices of LEFT nearest neighbors:\n{}".format(
+        #     left_neighbors_ind))
 
         left_y = self.y[left_neighbors_ind]
-        self.logger.debug("values of LEFT nearest neighbors:\n{}".format(
-            left_y))
+        # self.logger.debug("values of LEFT nearest neighbors:\n{}".format(
+        #     left_y))
 
         left_y.shape = origshape # reshape back
 
