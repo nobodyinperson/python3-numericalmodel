@@ -130,6 +130,7 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
             timestep (single numeric): The timestep to calculate the step.
                 Defaults to max_timestep.
         """
+        pass
 
     def step(self, time, timestep):
         """ Integrate one "timtstep" from "time" forward and return value

@@ -42,37 +42,9 @@ class ReprObjectTest(BasicTest):
                 repr(obj) # __repr__ itself
                 )
 
-class InterfaceValueTest(BasicTest):
-    """ Tests for the InterfaceValue class
-    """
-    def setUp(self):
-        self.rg = np.linspace(0,9,10)
-        self.interfacevalue = numericalmodel.interfaces.InterfaceValue( 
-            values = self.rg, times  = self.rg,
-            )
-        self.logger.debug("InterfaceValue instance: {}".format(
-            repr(self.interfacevalue)))
-        
-    @testname("__call__ with single value")
-    @unittest.skipIf(SKIPALL,"skipping all tests")
-    def test_call_single_value(self):
-        for t in self.rg:
-            self.logger.debug("InterfaceValue.__call__({}) should be {}".format(
-                repr(t+0.5),t))
-            self.assertEqual(self.interfacevalue(t+0.5),t)
-
-    @testname("__call__ with array as argument")
-    @unittest.skipIf(SKIPALL,"skipping all tests")
-    def test_call_array_argument(self):
-        for n in range(self.rg.size):
-            t = self.rg[:n+1]
-            self.logger.debug("InterfaceValue.__call__({}) should be {}".format(
-                repr(t+0.5),t))
-            self.assertTrue(np.allclose(self.interfacevalue(t+0.5),t))
-        
 
 def run():
     # run the tests
-    logger.info("=== TESTS ===")
+    logger.info("=== UTILS TESTS ===")
     unittest.main(exit=False,module=__name__)
-    logger.info("=== END OF TESTS ===")
+    logger.info("=== END OF UTILS TESTS ===")

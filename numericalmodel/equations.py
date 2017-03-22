@@ -144,7 +144,7 @@ class DerivativeEquation(Equation):
                 Defaults to the current (last) time.
             variable [Optional(callable)]: the variable to use. Defaults to
                 self.variable. Has to be a callable that takes times and
-                returns values.
+                returns values of same shape.
         Returns:
             the derivatives corresponding to the given times as np.array
         """

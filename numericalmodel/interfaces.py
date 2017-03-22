@@ -132,10 +132,10 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         val = np.asarray(newvalue) # convert to numpy array
         assert val.size == 1, "value has to be of size one"
         # append to log
-        t = self.next_time
-        ind = self.times == t
-        if np.any(ind):
-            self.values[ind] = val
+        t = self.next_time # the next time
+        ind = self.times == t # indices where this next time is already present
+        if np.any(ind): # time already there?
+            self.values[ind] = val # replace value
         else: # new time
             self.times = np.append(self.times, t)
             self.values = np.append(self.values, val)
@@ -175,11 +175,16 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
 
     @next_time.setter
     def next_time(self, newtime):
-        assert utils.is_numeric(newtime), "next_time has to be numeric"
-        assert np.asarray(newtime).size == 1, "next_time has to be one value"
-        assert newtime >= self.times.max(), \
-            "next_time has to be later than current time"
-        self._next_time = newtime
+        if newtime is None: # if set to none
+            del self._next_time # delete attribute
+        else: # set to something else
+            assert utils.is_numeric(newtime), "next_time has to be numeric"
+            assert np.asarray(newtime).size == 1, \
+                "next_time has to be one value"
+            if self.times.size:
+                assert newtime >= self.times.max(), \
+                    "next_time has to be later than current time"
+            self._next_time = newtime
 
     @property
     def time(self):
@@ -199,6 +204,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         assert isinstance(newtimes,np.ndarray), "times have to be np.array"
         assert newtimes.size == np.prod(newtimes.shape), \
             "times have to be one-dimensional" 
+        assert np.all(np.diff(newtimes)>0), "times must be strictly increasing"
         self._times = newtimes
         # reset intepolator
         if hasattr(self,"_interpolator"): del self._interpolator 
