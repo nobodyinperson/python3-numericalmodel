@@ -114,18 +114,36 @@ class InterfaceValueInteractiveChangeTest(BasicTest):
     @unittest.skipIf(SKIPALL,"skipping all tests")
     def test_time_function_and_next_time(self):
         val = self.val
-        t = 0
-        tf = lambda: t # a simple time_function
+        ta = 0
+        tf = lambda: ta # a simple time_function
         val.time_function = tf # set time_function
         rg = range(5)
         for i in rg:
-            t = i
-            v = lambda i: i + 1
-            val.value = v(i)
-            self.assertEqual( val.value, v(i) )
-            self.assertEqual( val.time, i )
-            self.assertTrue( np.allclose( val.values, v(np.array(rg)[:(i+1)] )))
-            self.assertTrue( np.allclose( val.times, np.array(rg)[:(i+1)] ) )
+            ta = i
+            self.logger.debug("tf() (should be {}): {}".format(i,tf()))
+            v = lambda t: t + 1
+            # time from time function
+            val.next_time = None
+            self.logger.debug("next_time after setting to None: {}".format(
+                val.next_time))
+            val.value = v(ta)
+            self.logger.debug("val: {}".format(repr(val)))
+            self.assertEqual( val.value, v(ta) )
+            self.assertEqual( val.time, ta )
+            self.assertTrue( 
+                np.allclose( val.values, np.linspace(1,ta+1,2*ta+1) ) )
+            self.assertTrue( 
+                np.allclose( val.times, np.linspace(0,ta,2*ta+1) ) )
+            # time from next_time
+            val.next_time = ta + 0.5
+            self.logger.debug("ta:{}".format(ta))
+            self.logger.debug("v(ta+0.5):{}".format(v(ta+0.5)))
+            val.value = v(ta + 0.5)
+            self.logger.debug("values:{}".format(val.values))
+            self.assertEqual( val.value , v(ta + 0.5) )
+            self.assertEqual( val.time , ta + 0.5 )
+
+
         
 
 class InterfaceValueInterpolationTest(BasicTest):

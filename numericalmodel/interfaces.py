@@ -136,9 +136,13 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         ind = self.times == t # indices where this next time is already present
         if np.any(ind): # time already there?
             self.values[ind] = val # replace value
+            # self.logger.debug("time {t} already there, " 
+            #     "overwriting value to {val}".format(t=t,val=val))
         else: # new time
             self.times = np.append(self.times, t)
             self.values = np.append(self.values, val)
+            # self.logger.debug("time {t} not yet there, " 
+            #     "appending value {val}".format(t=t,val=val))
 
     @property
     def values(self):
@@ -176,7 +180,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
     @next_time.setter
     def next_time(self, newtime):
         if newtime is None: # if set to none
-            del self._next_time # delete attribute
+            if hasattr(self, "_next_time"): del self._next_time # delete attribute
         else: # set to something else
             assert utils.is_numeric(newtime), "next_time has to be numeric"
             assert np.asarray(newtime).size == 1, \
