@@ -227,6 +227,29 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
             return self.equation.nonlinear_addend( 
                 time = time, variablevalue = variablevalue) 
 
+    def integrate(self, time = None, until = None):
+        """ Integrate until a certain time, respecting the max_timestep.
+        Args:
+            time (single numeric): The time to begin. Default to current
+                variable time.
+            until (single numeric): The time to integrate until. Defaults to one
+                max_timestep further.
+        """
+        assert utils.is_numeric(until), "until needs to be numeric"
+        if time is None: time = self.variable.time
+        if until is None: until = time + self.max_timestep
+        time_now = time
+        while time_now < until:
+            time_left = until - time_now
+            if time_left < self.max_timestep: # full max_timestep fits
+                timestep = self.max_timestep 
+            else:
+                timestep = time_left
+            # integrate one step
+            self.integrate_step( time = time_now, timestep = timestep )
+            time_now += timestep
+            
+
     def integrate_step(self, time = None, timestep = None):
         """ Integrate "timestep" forward and set results in-place
         Args:
@@ -235,7 +258,20 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
             timestep (single numeric): The timestep to calculate the step.
                 Defaults to max_timestep.
         """
-        pass
+        var = self.equation.variable
+        if timestep is None: timestep = self.max_timestep
+        if time is None: time = var.time
+        var.next_time = time + timestep # this is the next time
+        tend = self.step( # integrate one timestep
+            time = time, timestep = timestep, tendency = True )
+        # self.logger.debug("{} tendency: {}".format(var.id,tend))
+        # self.logger.debug("var() = {}".format(var()))
+        # self.logger.debug("var({}) = {}".format(time,var(time)))
+        # self.logger.debug("var.time = {}".format(var.time))
+        # self.logger.debug("var(var.time) = {}".format(var(var.time)))
+        new = var(time) + tend
+        var.value = new # save value
+        var.next_time = None # unset next_time
 
     def step(self, time, timestep, tendency=True):
         """ Integrate one "timtstep" from "time" forward and return value

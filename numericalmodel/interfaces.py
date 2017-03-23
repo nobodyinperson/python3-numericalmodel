@@ -256,7 +256,8 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
                 copy = False, # don't copy
                 kind = self.interpolation, # interpolation kind
                 bounds_error = False, # don't escalate on outside values
-                fill_value = (self.values.min(),self.values.max()), # fill 
+                fill_value = (self.values[self.times.argmin()],
+                              self.values[self.times.argmax()]), # fill 
                 )
         return self._interpolator
 
@@ -274,13 +275,20 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
             times [Optional(numeric)]: The times to obtain data from
         """
         assert self.times.size, "{}: no values recorded yet".format(self.name)
-        if times is None or self.times.size == 1: 
+        if times is None:
             # no time given or only one value there
             return self.values[-1]
         assert utils.is_numeric(times), "times have to be numeric"
         times = np.asarray(times) # convert to numpy array
+        if self.times.size == 1: 
+            return np.ones_like(times) * self.values[-1]
 
-        return self.interpolator(times) # return
+        if self.interpolation == "zero":
+            # "zero" interoplation returns ALWAYS the left neighbour.
+            # but if we request this specific time, we want to have it.
+            return self.interpolator(times+1e-10) # return
+        else:
+            return self.interpolator(times) # return
 
     def __str__(self):
         """ Stringification: summary
