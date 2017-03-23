@@ -19,6 +19,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         id = None,
         unit = None,
         time_function = None,
+        interpolation = None,
         values = None,
         times = None,
         ):
@@ -30,6 +31,9 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
                 chronological order
             times (1d np.array): the corresponding times to values
             unit (str): physical unit of value
+            interpolation (str): interpolation kind. See
+                scipy.interpolate.interp1d for documentation. Defaults to 
+                "zero".
             time_function (callable): function that returns the model time as 
                 utc unix timestamp
         """
@@ -47,6 +51,9 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         else:             self.values = values
         if times is None: self.times = self._default_times
         else:             self.times = times
+        if interpolation is None: 
+            self.interpolation = self._default_interpolation
+        else:             self.interpolation = interpolation
 
 
     ##################
@@ -159,7 +166,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
             "values have to be one-dimensional" 
         self._values = newvalues
         # reset intepolator
-        if hasattr(self,"_interpolator"): del self._interpolator 
+        self.interpolator = None
 
     @property
     def _default_values(self):
@@ -211,11 +218,32 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         assert np.all(np.diff(newtimes)>0), "times must be strictly increasing"
         self._times = newtimes
         # reset intepolator
-        if hasattr(self,"_interpolator"): del self._interpolator 
+        self.interpolator = None
 
     @property
     def _default_times(self):
         return np.array([]) # empty array
+
+    @property
+    def interpolation(self):
+        try:                   self._interpolation # already defined?
+        except AttributeError: self._interpolation = self._default_interpolation
+        return self._interpolation # return
+
+    @interpolation.setter
+    def interpolation(self,newinterpolation):
+        assert isinstance(newinterpolation,str), "interpolation has to be str"
+        if newinterpolation != self.interpolation: # really new value
+            if hasattr(self, "_interpolator"):
+                del self._interpolator # reset interpolator
+        self._interpolation = newinterpolation 
+
+    @property
+    def _default_interpolation(self):
+        """ Default interpolation if none was given. Subclasses may override
+        this.
+        """
+        return "zero"
 
     @property
     def interpolator(self):
@@ -226,11 +254,19 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
                 y = self.values, # the values
                 assume_sorted = True, # times are already sorted
                 copy = False, # don't copy
-                kind = "zero", # left-sided (0th-order spline is left-sided...)
+                kind = self.interpolation, # interpolation kind
                 bounds_error = False, # don't escalate on outside values
                 fill_value = (self.values.min(),self.values.max()), # fill 
                 )
         return self._interpolator
+
+    @interpolator.setter
+    def interpolator(self, value):
+        if value is None: # reset the interpolator
+            if hasattr(self, "_interpolator"): del self._interpolator
+            return
+        assert hasattr(value, "__call__"), "interpolator needs to be callable"
+        self._interpolator = value
 
     def __call__(self, times = None):
         """ When called, return the value, optionally at a specific time
@@ -238,9 +274,9 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
             times [Optional(numeric)]: The times to obtain data from
         """
         assert self.times.size, "no values recorded yet"
-        if times is None: # no time given
+        if times is None or self.times.size == 1: 
+            # no time given or only one value there
             return self.values[-1]
-            times = self.time_function() # use current time
         assert utils.is_numeric(times), "times have to be numeric"
         times = np.asarray(times) # convert to numpy array
 
@@ -255,8 +291,9 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         " \"{name}\" \n"
         "--- {id} [{unit}] ---\n"
         "currently: {value} [{unit}]\n"
+        "interpolation: {interp} \n"
         "{nr} total recorded values"
-        ).format(id=self.id,unit=self.unit,
+        ).format(id=self.id,unit=self.unit,interp=self.interpolation,
         name=self.name,value=value,nr=self.values.size)
         return string
         
@@ -274,6 +311,10 @@ class ForcingValue(InterfaceValue):
     def _default_name(self):
         return "unnamed forcing value"
 
+    @property
+    def _default_interpolation(self):
+        return "linear"
+
 class Parameter(InterfaceValue):
     """ Class for parameters
     """
@@ -285,6 +326,10 @@ class Parameter(InterfaceValue):
     def _default_name(self):
         return "unnamed parameter"
 
+    @property
+    def _default_interpolation(self):
+        return "linear"
+
 class StateVariable(InterfaceValue):
     """ Class for state variables
     """
@@ -295,6 +340,10 @@ class StateVariable(InterfaceValue):
     @property
     def _default_name(self):
         return "unnamed state variable"
+
+    @property
+    def _default_interpolation(self):
+        return "zero" # TODO not better "nearest"?
 
 
 ###############################
