@@ -273,7 +273,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         Args:
             times [Optional(numeric)]: The times to obtain data from
         """
-        assert self.times.size, "no values recorded yet"
+        assert self.times.size, "{}: no values recorded yet".format(self.name)
         if times is None or self.times.size == 1: 
             # no time given or only one value there
             return self.values[-1]

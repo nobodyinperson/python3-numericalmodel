@@ -8,6 +8,7 @@ import os
 # Internal modules
 from . import utils
 from . import interfaces
+from . import numericalschemes
 
 from . import test_data
 from . import test_flow
@@ -23,7 +24,7 @@ def runtest(module, verbose=False):
 
 # run all tests
 def runall(verbose=False):
-    for module in [utils,interfaces]:
+    for module in [utils,interfaces,numericalschemes]:
         runtest(module=module,verbose=verbose)
         print()
 

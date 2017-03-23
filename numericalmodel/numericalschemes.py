@@ -14,12 +14,18 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
     """ Base class for numerical schemes
     """
     def __init__(self, description = None, long_description = None,
-        equation = None, max_timestep = None):
+        equation = None, max_timestep = None, 
+        ignore_linear = None, ignore_independent = None, 
+        ignore_nonlinear = None):
         """ Class constructor
         Args:
             description (str): short equation description
             long_description (str): long equation description
             equation (DerivativeEquation): the equation
+            ignore_linear (bool): ignore the linear part of the equation?
+            ignore_independent (bool): ignore the variable-independent part of
+                the equation?  
+            ignore_nonlinear (bool): ignore the nonlinear part of the equation?
         """
         if equation is None: self.equation = self._default_equation
         else:                self.equation = equation
@@ -30,6 +36,15 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         if long_description is None: 
             self.long_description = self._default_long_description
         else:                   self.long_description = long_description
+        if ignore_linear is None: 
+            self.ignore_linear = self._default_ignore_linear
+        else:                     self.ignore_linear = ignore_linear
+        if ignore_independent is None: 
+            self.ignore_independent = self._default_ignore_independent
+        else:                     self.ignore_independent = ignore_independent
+        if ignore_nonlinear is None: 
+            self.ignore_nonlinear = self._default_ignore_nonlinear
+        else:                     self.ignore_nonlinear = ignore_nonlinear
 
     ##################
     ### Properties ###
@@ -101,6 +116,50 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
     def _default_equation(self):
         return equations.DerivativeEquation()
 
+    @property
+    def ignore_linear(self):
+        try:                   self._ignore_linear
+        except AttributeError: self._ignore_linear = self._default_ignore_linear
+        return self._ignore_linear
+
+    @ignore_linear.setter
+    def ignore_linear(self, newignore_linear):
+        self._ignore_linear = bool(newignore_linear)
+        
+    @property
+    def _default_ignore_linear(self):
+        return False
+
+    @property
+    def ignore_independent(self):
+        try:                   self._ignore_independent
+        except AttributeError: 
+            self._ignore_independent = self._default_ignore_independent
+        return self._ignore_independent
+
+    @ignore_independent.setter
+    def ignore_independent(self, newignore_independent):
+        self._ignore_independent = bool(newignore_independent)
+        
+    @property
+    def _default_ignore_independent(self):
+        return False
+
+    @property
+    def ignore_nonlinear(self):
+        try:                   self._ignore_nonlinear
+        except AttributeError: 
+            self._ignore_nonlinear = self._default_ignore_nonlinear
+        return self._ignore_nonlinear
+
+    @ignore_nonlinear.setter
+    def ignore_nonlinear(self, newignore_nonlinear):
+        self._ignore_nonlinear = bool(newignore_nonlinear)
+        
+    @property
+    def _default_ignore_nonlinear(self):
+        return False
+
     ###############
     ### Methods ###
     ###############
@@ -122,6 +181,52 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
     def _needed_timesteps_for_integration_step(self, timestep = None):
         raise NotImplementedError("Subclasses should override this")
 
+    def linear_factor(self, time = None):
+        """ Calculate the equation's linear factor in front of the variable.
+        Args:
+            times [Optional(single numeric value)]: the time to calculate the 
+                derivative. Defaults to the variable's current (last) time.
+        Returns:
+            res (numeric): the linear factor or 0 if ignore_linear is True.
+        """
+        if self.ignore_linear:
+            return 0
+        else:
+            return self.equation.linear_factor( time = time )
+
+    def independent_addend(self, time = None):
+        """ Calculate the equation's addend part that is independent of the
+        variable.
+        Args:
+            times [Optional(single numeric value)]: the time to calculate the 
+                derivative. Defaults to the variable's current (last) time.
+        Returns:
+            res (numeric): the independent addend or 0 if ignore_independent 
+            is True.
+        """
+        if self.ignore_independent:
+            return 0
+        else:
+            return self.equation.independent_addend( time = time )
+
+    def nonlinear_addend(self, time = None, variablevalue = None):
+        """ Calculate the derivative's addend part that is nonlinearly dependent
+        of the variable.
+        Args:
+            times [Optional(single numeric value)]: the time to calculate the 
+                derivative. Defaults to the variable's current (last) time.
+            variablevalue [Optional(np.array)]: the variable vaulue to use. 
+                Defaults to the value of self.variable at the given time.
+        Returns:
+            res (numeric): the nonlinear addend or 0 if ignore_nonlinear is 
+            True.
+        """
+        if self.ignore_nonlinear:
+            return 0
+        else:
+            return self.equation.nonlinear_addend( 
+                time = time, variablevalue = variablevalue) 
+
     def integrate_step(self, time = None, timestep = None):
         """ Integrate "timestep" forward and set results in-place
         Args:
@@ -132,13 +237,15 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         """
         pass
 
-    def step(self, time, timestep):
+    def step(self, time, timestep, tendency=True):
         """ Integrate one "timtstep" from "time" forward and return value
         Args:
             time (single numeric): The time to calculate the step FROM
             timestep (single numeric): The timestep to calculate the step
+            tendency [Optional(bool)]: return the tendency or the actual value
+                of the variable after the timestep?
         Returns:
-            res (np.array): The resulting variable value
+            res (np.array): The resulting variable value or tendency
         """
         raise NotImplementedError("Subclasses should override this")
 
@@ -162,35 +269,163 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
 class EulerExplicit(NumericalScheme):
     """ Euler-explicit numerical scheme
     """
-    def step(self, time, timestep):
-        d = self.equation.derivative
+    @property
+    def _default_description(self):
+        return "Euler-explicit scheme"
+
+    @property
+    def _default_long_description(self):
+        return "This is a Euler-explicit scheme to solve a derivative equation."
+
+    def step(self, time = None, timestep = None, tendency = True):
+        if timestep is None: timestep = self.max_timestep
         v = self.equation.variable
-        res = v(time) + timestep * d(time)
+        # get equation parts
+        linear = self.linear_factor( time = time )
+        indep  = self.independent_addend( time = time )
+        nonlin = self.nonlinear_addend( time = time )
+
+        cur = v( time )
+        # explicit scheme
+        tend = timestep * ( linear * cur + indep + nonlin )
+
+        if tendency: # only tendency desired
+            res = tend
+        else: # value desired
+            res = cur + tend
         return res
 
     def _needed_timesteps_for_integration_step(self, timestep = None):
         return np.array([0]) # only current time needed
 
+
+
 class EulerImplicit(NumericalScheme):
     """ Euler-implicit numerical scheme
     """
-    def step(self, time = None, timestep = None):
-        d = self.equation.derivative
+    @property
+    def _default_description(self):
+        return "Euler-implicit scheme"
+
+    @property
+    def _default_long_description(self):
+        return "This is a Euler-implicit scheme to solve a derivative equation."
+
+    def step(self, time = None, timestep = None, tendency = True):
+        if timestep is None: timestep = self.max_timestep
         v = self.equation.variable
-        res = v(time) + timestep * d(time)
+        # get equation parts
+        linear = self.linear_factor( time = time )
+        indep  = self.independent_addend( time = time )
+        nonlin = self.nonlinear_addend( time = time )
+
+        assert np.all(nonlin == 0), ("nonlinear part of equation is not "
+        "zero! Cannot integrate equation with implicit scheme. Set "
+        "ignore_nonlinear to ignore nonlinear part.")
+
+        # implicit scheme
+        new = ( indep * timestep + v( time ) ) / ( 1 - linear * timestep )
+
+        if tendency: # tendency desired
+            res = new - v( time ) # only tendency
+        else: # new value desired
+            res = new
+        
+        return res
 
     def _needed_timesteps_for_integration_step(self, timestep):
         return np.array([0,1]) * timestep # current time and timestep needed
 
+
 class LeapFrog(NumericalScheme):
     """ Leap-Frog numerical scheme
     """
+    @property
+    def _default_description(self):
+        return "Leap-Frog scheme"
+
+    @property
+    def _default_long_description(self):
+        return "This is a Leap-Frog scheme to solve a derivative equation."
+
+    def step(self, time = None, timestep = None, tendency = True):
+        if timestep is None: timestep = self.max_timestep
+        v = self.equation.variable
+        # get equation parts
+        linear = self.linear_factor( time = time )
+        indep  = self.independent_addend( time = time )
+        nonlin = self.nonlinear_addend( time = time )
+
+        # previous value
+        prev = v( time - timestep )
+        cur = v( time )
+        # leap-frog scheme
+        new = prev + 2 * timestep * ( linear * cur + indep + nonlin )
+
+        if tendency: # tendency desired
+            res = new - cur # only tendency
+        else: # new value desired
+            res = new
+        
+        return res
+
     def _needed_timesteps_for_integration_step(self, timestep):
         return np.array([-1,0]) * timestep # prev time and current time needed
+
 
 class RungeKutta4(NumericalScheme):
     """ Runte-Kutta-4 numerical scheme
     """
+    @property
+    def _default_description(self):
+        return "Runge-Kutta-4 scheme"
+
+    @property
+    def _default_long_description(self):
+        return ("This is a Runge-Kutta-4th-order scheme to solve a " 
+            "derivative equation.")
+
+    def step(self, time = None, timestep = None, tendency = True):
+        if timestep is None: timestep = self.max_timestep
+        v = self.equation.variable
+        # get equation parts
+        linear = self.linear_factor( time = time )
+        indep  = self.independent_addend( time = time )
+        nonlin = self.nonlinear_addend( time = time )
+
+        half_time = time + timestep / 2
+        next_time = time + timestep
+        cur = v( time )
+
+        def F(): return linear * cur + indep + nonlin
+
+        # first part
+        k1 = timestep * F()
+
+        # second part
+        linear = self.linear_factor( time = half_time )
+        indep  = self.independent_addend( time = half_time )
+        nonlin = self.nonlinear_addend( 
+            time = half_time, variablevalue = cur + k1 / 2 )
+        k2 = timestep * F()
+        nonlin = self.nonlinear_addend( 
+            time = half_time, variablevalue = cur + k2 / 2 )
+        k3 = timestep * F()
+        linear = self.linear_factor( time = next_time )
+        indep  = self.independent_addend( time = next_time )
+        nonlin = self.nonlinear_addend( 
+            time = next_time, variablevalue = cur + k3 )
+        k4 = timestep * F()
+
+        tend = ( k1 + 2 * k2 + 2 * k3 + k4 ) / 6
+
+        if tendency: # tendency desired
+            res = tend # only tendency
+        else: # new value desired
+            res = cur + tend # add tendency
+        
+        return res
+
     def _needed_timesteps_for_integration_step(self, timestep):
         return np.array([0,0.5,1]) * timestep # current time, half and full 
 

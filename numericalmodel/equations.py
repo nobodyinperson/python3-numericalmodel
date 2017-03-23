@@ -137,18 +137,57 @@ class DerivativeEquation(Equation):
     ###############
     ### Methods ###
     ###############
-    def derivative(self, times = None, variable = None):
+    def linear_factor(self, time = None):
+        """ Calculate the derivative's linear factor in front of the variable
+        Args:
+            times [Optional(single numeric value)]: the time to calculate the 
+                derivative. Defaults to the variable's current (last) time.
+        """
+        raise NotImplementedError("subclasses must override this method")
+
+    def independent_addend(self, time = None):
+        """ Calculate the derivative's addend part that is independent of the
+        variable.
+        Args:
+            times [Optional(single numeric value)]: the time to calculate the 
+                derivative. Defaults to the variable's current (last) time.
+        """
+        raise NotImplementedError("subclasses must override this method")
+
+    def nonlinear_addend(self, time = None, variablevalue = None):
+        """ Calculate the derivative's addend part that is nonlinearly dependent
+        of the variable.
+        Args:
+            times [Optional(single numeric value)]: the time to calculate the 
+                derivative. Defaults to the variable's current (last) time.
+            variablevalue [Optional(np.array)]: the variable vaulue to use. 
+                Defaults to the value of self.variable at the given time.
+        """
+        raise NotImplementedError("subclasses must override this method")
+
+    def derivative(self, time = None, variablevalue = None):
         """ Calculate the derivative (right-hand-side) of the equation
         Args:
-            times [Optional(numeric)]: the times to calculate the derivative.
-                Defaults to the current (last) time.
-            variable [Optional(callable)]: the variable to use. Defaults to
-                self.variable. Has to be a callable that takes times and
-                returns values of same shape.
+            times [Optional(single numeric value)]: the time to calculate the 
+                derivative. Defaults to the variable's current (last) time.
+            variablevalue [Optional(np.array)]: the variable vaulue to use. 
+                Defaults to the value of self.variable at the given time.
         Returns:
-            the derivatives corresponding to the given times as np.array
+            the derivatives corresponding to the given time as np.array
         """
-        raise NotImplementedError("subclasses should override this method")
+        if variablevalue is None: var = self.variable(time)
+        else:                     var = variablevalue
+
+        # calculate the derivative parts
+        linear_factor = self.linear_factor(time = time)
+        independent_addend = self.independent_addend(time = time)
+        nonlinear_addend = self.nonlinear_addend(
+            time = time, variablevalue = var)
+            
+        # merge parts
+        deriv = linear_factor * var + independent_addend + nonlinear_addend
+
+        return deriv
 
 
 class PrognosticEquation(DerivativeEquation):

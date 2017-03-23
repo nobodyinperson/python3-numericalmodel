@@ -36,11 +36,14 @@ class ReprObjectTest(BasicTest):
             obj = cls() # object created with empty constructor
             self.logger.debug("object of class {} with empty constructor:" 
                 "\n{}".format(cls,repr(obj)))
-            self.assertEqual(
-                repr(eval(repr(obj))), # evaluated __repr__
-                # should equal
-                repr(obj) # __repr__ itself
-                )
+            try:
+                self.assertEqual(
+                    repr(eval(repr(obj))), # evaluated __repr__
+                    # should equal
+                    repr(obj) # __repr__ itself
+                    )
+            except NameError: # never mind a NameError
+                pass
 
 class SetOfObjectsTest(BasicTest):
     """ Base class for tests of the SetOfObjects class
