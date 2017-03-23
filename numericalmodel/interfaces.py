@@ -260,111 +260,9 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         name=self.name,value=value,nr=self.values.size)
         return string
         
-
-
-class SetOfInterfaceValues(collections.MutableMapping,utils.ReprObject):
-    """ Base class for sets of interface values
-    """
-    def __init__(self, elements = [], value_type = InterfaceValue):
-        self.store = dict() # empty dict
-
-        # set properties
-        self.value_type = value_type
-        self.elements = elements
-
-    ##################
-    ### Properties ###
-    ##################
-    @property
-    def elements(self):
-        """ return the list of values
-        """
-        return [self.store[x] for x in sorted(self.store)]
-
-    @elements.setter
-    def elements(self, newelements):
-        """ Set new values via a list
-        """
-        assert isinstance(newelements, collections.Iterable), (
-            "elements have to be list")
-        # re-set the dict and fill it with new data
-        tmp = dict() # temporary empty dict
-        for i in range(len(newelements)):
-            elem = newelements[i]
-            assert issubclass(elem.__class__, self.value_type), \
-                ("new element nr. {i} is no object of subclass " 
-                 "of {vtype} but of class {cls}").format(
-                i=i,vtype=self.value_type,cls=elem.__class__)
-            assert not elem.id in tmp.keys(), \
-                "id '{}' present multiple times".format(elem.id)
-            tmp.update({elem.id:elem}) # add to temporary dict
-
-        self.store = tmp.copy() # set internal dict
-
-    @property
-    def value_type(self):
-        try:                   self._value_type
-        except AttributeError: self._value_type = InterfaceValue # default
-        return self._value_type
-
-    @value_type.setter
-    def value_type(self, newtype):
-        assert inspect.isclass(newtype), \
-            "value_type has to be a class"
-        assert issubclass(newtype, InterfaceValue), \
-            "value_type has to be subclass of InterfaceValue"
-        self._value_type = newtype
-
-    @property
-    def time_function(self):
-        return [e.time_function for e in self.elements]
-
-    @time_function.setter
-    def time_function(self, newfunc):
-        assert hasattr(newfunc, '__call__'), "time_function has to be callable"
-        for e in self.elements: # set every element's time_function
-            e.time_function = newfunc
-
-    ###############
-    ### Methods ###
-    ###############
-    def add_element(self, newelement):
-        tmp = self.elements.copy()
-        tmp.append(newelement)
-        self.elements = tmp
-
-    def __getitem__(self, key):
-        return self.store[key]
-
-    def __setitem__(self, key, value):
-        assert issubclass(value.__class__, self.value_type), (
-            "new value has to be of type {}").format(self.value_type)
-        self.store[key] = value
-
-    def __delitem__(self, key):
-        del self.store[key]
-
-    def __iter__(self):
-        return iter(self.store)
-
-    def __len__(self):
-        return len(self.store)
-
-    def __str__(self):
-        """ Stringification: summary
-        """
-        string = "\n\n".join(str(x) for x in self.elements)
-        if string:
-            return string
-        else:
-            return "none"
-
-    def __call__(self,id):
-        """ When called, return the InterfaceValue's VALUE
-        """
-        return self[id].value
-
-
+####################################
+### Subclasses of InterfaceValue ###
+####################################
 class ForcingValue(InterfaceValue):
     """ Class for forcing values
     """
@@ -399,54 +297,74 @@ class StateVariable(InterfaceValue):
         return "unnamed state variable"
 
 
-class SetOfParameters(SetOfInterfaceValues):
-    """ Class for a set of parameters
+###############################
+### Sets of InterfaceValues ###
+###############################
+class SetOfInterfaceValues(utils.SetOfObjects):
+    """ Base class for sets of interface values
     """
-    def __init__(self,parameters = []):
-        SetOfInterfaceValues.__init__( self,
-            value_type = Parameter, # only parameter belong here
-            elements = parameters,  # these parameters
+    def __init__(self, elements = []):
+        """ class constructor
+        Args:
+            values (list of value_type-instances): the list of values
+        """
+        utils.SetOfObjects.__init__(self, # call SetOfObjects constructor
+            elements = elements, 
+            element_type = InterfaceValue # only InterfaceValue is allowed
             )
 
     @property
-    def parameters(self):
-        return self.elements
+    def time_function(self):
+        return [e.time_function for e in self.elements]
 
-    @parameters.setter
-    def parameters(self, newparameters):
-        self.elements = newparameters
+    @time_function.setter
+    def time_function(self, newfunc):
+        assert hasattr(newfunc, '__call__'), "time_function has to be callable"
+        for e in self.elements: # set every element's time_function
+            e.time_function = newfunc
+
+    ###############
+    ### Methods ###
+    ###############
+    def _object_to_key(self, obj):
+        """ key transformation function. 
+        Args:
+            obj (object): the element
+        Returns:
+            key (str): the unique key for this object. The InterfaceValue's id
+                is used.
+        """
+        return obj.id
         
+    def __call__(self,id):
+        """ When called, return the InterfaceValue's VALUE
+        """
+        return self[id].value
+
+
+class SetOfParameters(SetOfInterfaceValues):
+    """ Class for a set of parameters
+    """
+    def __init__(self,elements = []):
+        utils.SetOfObjects.__init__( self,
+            elements = elements,  # these parameters
+            element_type = Parameter, # only parameter belong here
+            )
 
 class SetOfForcingValues(SetOfInterfaceValues):
     """ Class for a set of forcing values
     """
-    def __init__(self,forcingvalues = []):
-        SetOfInterfaceValues.__init__( self,
-            value_type = ForcingValue, # only parameter belong here
-            elements = forcingvalues,  # these forcingvalues
+    def __init__(self,elements = []):
+        utils.SetOfObjects.__init__( self,
+            elements = elements,  # these values
+            element_type = ForcingValue, # only forcingvalues belong here
             )
-
-    @property
-    def forcingvalues(self):
-        return self.elements
-
-    @forcingvalues.setter
-    def forcingvalues(self, newforcingvalues):
-        self.elements = newforcingvalues
         
 class SetOfStateVariables(SetOfInterfaceValues):
     """ Class for a set of state variables
     """
-    def __init__(self,statevariables = []):
-        SetOfInterfaceValues.__init__( self,
-            value_type = StateVariable, # only parameter belong here
-            elements = statevariables,  # these variables
+    def __init__(self,elements = []):
+        utils.SetOfObjects.__init__( self,
+            elements = elements,  # these variables
+            element_type = StateVariable, # only statevariables belong here
             )
-
-    @property
-    def statevariables(self):
-        return self.elements
-
-    @statevariables.setter
-    def statevariables(self, newstatevariables):
-        self.elements = newstatevariables

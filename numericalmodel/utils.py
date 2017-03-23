@@ -5,6 +5,7 @@ import warnings
 import inspect
 import re
 import datetime
+import collections
 
 # internal modules
 
@@ -85,8 +86,12 @@ class ReprObject(object):
                 name=var.__name__,cls=var.__self__.__class__.__name__,
                 module=var.__module__)
         else:
-            string = "{module}.{name}".format(
-                name=var.__name__,module=var.__module__)
+            name = var.__name__
+            module = var.__module__
+            if module == "builtins":
+                string = name
+            else:
+                string = "{module}.{name}".format(name=name,module=module)
         return(string)
 
     def __repr__(self):
@@ -141,4 +146,99 @@ class ReprObject(object):
         reprstring = (reprformatstr).format(**reprformatargs)
         return reprstring
 
+
+class SetOfObjects(ReprObject, LoggerObject, collections.MutableMapping):
+    """ Base class for sets of objects
+    """
+    def __init__(self, elements = [], element_type = object):
+        self.store = dict() # empty dict
+
+        # set properties
+        self.element_type = element_type
+        self.elements = elements
+
+    ##################
+    ### Properties ###
+    ##################
+    @property
+    def elements(self):
+        """ return the list of values
+        """
+        return [self.store[x] for x in sorted(self.store)]
+
+    @elements.setter
+    def elements(self, newelements):
+        """ Set new values via a list
+        """
+        assert isinstance(newelements, collections.Iterable), (
+            "elements have to be list")
+        # re-set the dict and fill it with new data
+        tmp = dict() # temporary empty dict
+        for i in range(len(newelements)):
+            elem = newelements[i]
+            assert isinstance(elem, self.element_type), \
+                ("new element nr. {i} is instance of <{cls}> " 
+                 "which is not subclass of <{vtype}>.").format( i=i,
+                vtype=self.element_type.__name__,
+                cls=elem.__class__.__name__,)
+            key = self._object_to_key(elem) # get the key
+            assert not key in tmp, \
+                "element '{}' present multiple times".format(key)
+            tmp.update({key:elem}) # add to temporary dict
+
+        self.store = tmp.copy() # set internal dict
+
+    @property
+    def element_type(self):
+        try:                   self._element_type
+        except AttributeError: self._element_type = object # default
+        return self._element_type
+
+    @element_type.setter
+    def element_type(self, newtype):
+        assert inspect.isclass(newtype), "element_type has to be a class"
+        self._element_type = newtype
+
+    ###############
+    ### Methods ###
+    ###############
+    def _object_to_key(self, obj):
+        """ key transformation function. Subclasses should override this.
+        Args:
+            obj (object): object
+        Returns:
+            key (str): the unique key for this object. Defaults to repr(obj)
+        """
+        return repr(obj) # by default, return the object's repr 
+
+    def add_element(self, newelement):
+        tmp = self.elements.copy()
+        tmp.append(newelement)
+        self.elements = tmp
+
+    def __getitem__(self, key):
+        return self.store[key]
+
+    def __setitem__(self, key, value):
+        assert issubclass(value.__class__, self.element_type), (
+            "new value has to be of type {}").format(self.element_type)
+        self.store[key] = value
+
+    def __delitem__(self, key):
+        del self.store[key]
+
+    def __iter__(self):
+        return iter(self.store)
+
+    def __len__(self):
+        return len(self.store)
+
+    def __str__(self):
+        """ Stringification: summary
+        """
+        string = "\n\n".join(str(x) for x in self.elements)
+        if string:
+            return string
+        else:
+            return "none"
 

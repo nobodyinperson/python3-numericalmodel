@@ -193,3 +193,33 @@ class RungeKutta4(NumericalScheme):
     """
     def _needed_timesteps_for_integration_step(self, timestep):
         return np.array([0,0.5,1]) * timestep # current time, half and full 
+
+
+###############################
+### Sets of NumericalScheme ###
+###############################
+class SetOfNumericalSchemes(utils.SetOfObjects):
+    """ Base class for sets of NumericalSchemes
+    """
+    def __init__(self, elements = []):
+        """ class constructor
+        Args:
+            elements (list of NumericalScheme instance): the numerical schemes
+        """
+        utils.SetOfObjects.__init__(self, # call SetOfObjects constructor
+            elements = elements, 
+            element_type = NumericalScheme, # only NumericalScheme is allowed
+            )
+
+    ###############
+    ### Methods ###
+    ###############
+    def _object_to_key(self, obj):
+        """ key transformation function. 
+        Args:
+            obj (object): the element
+        Returns:
+            key (str): the unique key for this object. The equation's variable's
+                id is used.
+        """
+        return obj.equation.variable.id

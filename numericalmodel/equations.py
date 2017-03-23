@@ -163,90 +163,36 @@ class DiagnosticEquation(Equation):
     pass
 
 
-class SetOfEquations(collections.MutableMapping,utils.ReprObject):
-    """ Base class for sets of equations
+
+
+########################
+### Set of Equations ###
+########################
+class SetOfEquations(utils.SetOfObjects):
+    """ Base class for sets of Equations
     """
-    def __init__(self, equations = [], equation_type = Equation):
-        self.store = dict() # empty dict
-
-        # set properties
-        self.equation_type = equation_type
-        self.equations = equations
-
-    ##################
-    ### Properties ###
-    ##################
-    @property
-    def equations(self):
-        """ return the list of values
+    def __init__(self, elements = []):
+        """ class constructor
+        Args:
+            elements (list of Equations): the list of Equation instances
         """
-        return [self.store[x] for x in sorted(self.store)]
-
-    @equations.setter
-    def equations(self, newequations):
-        """ Set new values via a list
-        """
-        assert isinstance(newequations, collections.Iterable), (
-            "equations have to be list")
-        # re-set the dict and fill it with new data
-        tmp = dict() # temporary empty dict
-        for i in range(len(newequations)):
-            eq = newequations[i]
-            assert issubclass(eq.__class__, self.equation_type), \
-                ("new eqent nr. {i} is no object of subclass " 
-                 "of {vtype} but of class {cls}").format(
-                i=i,vtype=self.equation_type,cls=eq.__class__)
-            assert not eq.variable.id in tmp.keys(), \
-                "variable '{}' present multiple times".format(eq.variable.id)
-            tmp.update({eq.variable.id:eq}) # add to temporary dict
-
-        self.store = tmp.copy() # set internal dict
-
-    @property
-    def equation_type(self):
-        try:                   self._equation_type
-        except AttributeError: self._equation_type = Equation # default
-        return self._equation_type
-
-    @equation_type.setter
-    def equation_type(self, newtype):
-        assert inspect.isclass(newtype), \
-            "equation_type has to be a class"
-        assert issubclass(newtype, Equation), \
-            "equation_type has to be subclass of Equation"
-        self._equation_type = newtype
+        utils.SetOfObjects.__init__(self, # call SetOfObjects constructor
+            elements = elements, 
+            element_type = Equation, # only Equation is allowed
+            )
 
     ###############
     ### Methods ###
     ###############
-    def add_element(self, newelement):
-        tmp = self.equations.copy()
-        tmp.append(newelement)
-        self.equations = tmp
-
-    def __getitem__(self, key):
-        return self.store[key]
-
-    def __setitem__(self, key, value):
-        assert issubclass(value.__class__, self.equation_type), (
-            "new value has to be of type {}").format(self.equation_type)
-        self.store[key] = value
-
-    def __delitem__(self, key):
-        del self.store[key]
-
-    def __iter__(self):
-        return iter(self.store)
-
-    def __len__(self):
-        return len(self.store)
-
-    def __str__(self):
-        """ Stringification: summary
+    def _object_to_key(self, obj):
+        """ key transformation function. 
+        Args:
+            obj (object): the element
+        Returns:
+            key (str): the unique key for this object. The variable's id
+                is used.
         """
-        string = "\n\n".join(str(x) for x in self.equations)
-        if string:
-            return string
-        else:
-            return "none"
+        return obj.variable.id
+
+
 

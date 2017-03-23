@@ -242,7 +242,7 @@ class NumericalModel(GenericModel):
                 timestep = time_left
             # self.logger.debug("timestep left: {}".format(timestep))
             self.model_time = self.model_time + timestep
-            for equation in self.equations.equations:
+            for equation in self.equations.values():
                 # self.logger.debug("integrate equation {}".format(
                 #     equation.description))
                 equation.integrate(current_time = self.model_time, 

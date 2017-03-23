@@ -16,7 +16,11 @@ import numpy as np
 # skip everything
 SKIPALL = False # by default, don't skip everything
 
-class InterfaceValueConstructionTest(BasicTest):
+class InterfaceValueTest(BasicTest):
+    """ Base class for InterfaceValue tests
+    """
+    
+class InterfaceValueConstructionTest(InterfaceValueTest):
     """ Test for the construction and handling of the InterfaceValue class
     """
     @testname("empty constructor")
@@ -26,7 +30,7 @@ class InterfaceValueConstructionTest(BasicTest):
         self.assertTrue( np.allclose( val.values, EMPTY_ARRAY ) )
         self.assertTrue( np.allclose( val.times, EMPTY_ARRAY ) )
 
-class InterfaceValueInteractiveChangeTest(BasicTest):
+class InterfaceValueInteractiveChangeTest(InterfaceValueTest):
     """ Test for interactive InterfaceValue manipulation
     """
     def setUp(self):
@@ -146,7 +150,7 @@ class InterfaceValueInteractiveChangeTest(BasicTest):
 
         
 
-class InterfaceValueInterpolationTest(BasicTest):
+class InterfaceValueInterpolationTest(InterfaceValueTest):
     """ Tests for the InterfaceValue class' interpolation
     """
     def setUp(self):
@@ -171,7 +175,7 @@ class InterfaceValueInterpolationTest(BasicTest):
             self.logger.debug("InterfaceValue.__call__({}) should be {}".format(
                 repr(t+0.5),t))
             self.assertTrue(np.allclose(self.interfacevalue(t+0.5),t))
-        
+
 
 def run():
     # run the tests
