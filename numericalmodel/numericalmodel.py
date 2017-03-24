@@ -214,12 +214,12 @@ class NumericalModel(GenericModel):
         Args:
             final_time (float): time to integrate until
         """
-        biggest_timestep = max(
-            [s.max_timestep for s in self.numericalschemes.values()])
         self.logger.debug("start integration")
         while self.model_time < final_time:
             self.logger.debug("current model time {} is smaller than " 
                 "final time {}".format(self.model_time, final_time))
+            biggest_timestep = max(
+                [s.max_timestep for s in self.numericalschemes.values()])
             run_time_left = final_time - self.model_time
             if run_time_left > biggest_timestep:
                 big_timestep = biggest_timestep
@@ -227,6 +227,10 @@ class NumericalModel(GenericModel):
                 big_timestep = run_time_left
 
             for scheme in self.numericalschemes.values():
+                self.logger.debug(
+                    ("integrate scheme '{}' for equation '{}' until time {}"
+                    ).format( scheme.description,
+                    scheme.equation.description,self.model_time + big_timestep))
                 scheme.integrate(
                     time = self.model_time,
                     until = self.model_time + big_timestep)

@@ -59,7 +59,10 @@ class LoggerObject(object):
         try: # try to return the internal property
             return self._logger 
         except AttributeError: # didn't work
-            return logging.getLogger(__name__) # return default logger
+            name = self.__class__.__name__
+            module = self.__class__.__module__
+            string = "{module}.{name}".format(name=name,module=module)
+            return logging.getLogger(string) # return default logger
     
     @logger.setter
     def logger(self, logger):

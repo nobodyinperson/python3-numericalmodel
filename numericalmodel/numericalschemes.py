@@ -14,7 +14,7 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
     """ Base class for numerical schemes
     """
     def __init__(self, description = None, long_description = None,
-        equation = None, max_timestep = None, 
+        equation = None, fallback_max_timestep = None, 
         ignore_linear = None, ignore_independent = None, 
         ignore_nonlinear = None):
         """ Class constructor
@@ -22,6 +22,8 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
             description (str): short equation description
             long_description (str): long equation description
             equation (DerivativeEquation): the equation
+            fallback_max_timestep (single numeric): the fallback maximum timestep if
+                no timestep can be estimated from the equation
             ignore_linear (bool): ignore the linear part of the equation?
             ignore_independent (bool): ignore the variable-independent part of
                 the equation?  
@@ -29,8 +31,9 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         """
         if equation is None: self.equation = self._default_equation
         else:                self.equation = equation
-        if max_timestep is None: self.max_timestep = self._default_max_timestep
-        else:                self.max_timestep = max_timestep
+        if fallback_max_timestep is None: 
+            self.fallback_max_timestep = self._default_fallback_max_timestep
+        else:                self.fallback_max_timestep = fallback_max_timestep
         if description is None: self.description = self._default_description
         else:                   self.description = description
         if long_description is None: 
@@ -82,22 +85,22 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         return "This is a numerical scheme to solve a derivative equation."
 
     @property
-    def max_timestep(self):
-        try:                   self._max_timestep
+    def fallback_max_timestep(self):
+        try:                   self._fallback_max_timestep
         except AttributeError: 
-            self._max_timestep = self._default_max_timestep
-        return self._max_timestep
+            self._fallback_max_timestep = self._default_fallback_max_timestep
+        return self._fallback_max_timestep
 
-    @max_timestep.setter
-    def max_timestep(self, newmax_timestep):
-        assert utils.is_numeric(newmax_timestep), \
-            "max_timestep has to be numeric"
-        assert np.asarray(newmax_timestep).size == 1, \
-            "max_timestep has to be of size 1"
-        self._max_timestep = float(newmax_timestep)
-        
+    @fallback_max_timestep.setter
+    def fallback_max_timestep(self, newfallback_max_timestep):
+        assert utils.is_numeric(newfallback_max_timestep), \
+            "fallback_max_timestep has to be numeric"
+        assert np.asarray(newfallback_max_timestep).size == 1, \
+            "fallback_max_timestep has to be of size 1"
+        self._fallback_max_timestep = float(newfallback_max_timestep)
+
     @property
-    def _default_max_timestep(self):
+    def _default_fallback_max_timestep(self):
         return 1
 
     @property
@@ -163,6 +166,72 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
     ###############
     ### Methods ###
     ###############
+    @property
+    def max_timestep(self, time = None, variablevalue = None):
+        """ Return a maximum timestep for the current state. First tries the
+            max_timestep_estimate, then the fallback.
+        Args:
+            times [Optional(single numeric value)]: the time to calculate the 
+                derivative. Defaults to the variable's current (last) time.
+            variablevalue [Optional(np.array)]: the variable vaulue to use. 
+                Defaults to the value of self.variable at the given time.
+        Returns:
+            timestep (single numeric): an estimate of the current
+            maximum timestep
+        """
+        try:
+            try: # try an estimate
+                ts = self.max_timestep_estimate(
+                    time=time, variablevalue=variablevalue) # try estimate
+            except: # estimating didn't work
+                ts = self.fallback_max_timestep # try fallback
+            assert utils.is_numeric(ts)
+            assert np.asarray(ts).size == 1
+        except: # neither estimate nor fallback were sensible
+            ts = 1 # default
+            raise
+        return ts
+
+
+    def max_timestep_estimate(self, time = None, variablevalue = None):
+        """ Based on this numerical scheme and the equation parts, estimate
+        a maximum timestep. Subclasses may override this.
+        Args:
+            times [Optional(single numeric value)]: the time to calculate the 
+                derivative. Defaults to the variable's current (last) time.
+            variablevalue [Optional(np.array)]: the variable vaulue to use. 
+                Defaults to the value of self.variable at the given time.
+        Returns:
+            timestep (single numeric or bogus): an estimate of the current
+            maximum timestep. Definitely check the result for integrity.
+        Raises:
+            Any error if something goes wrong. Definitely wrap a call to this
+            method into a try:... except:... block.
+        """
+        # equation + state -> timestep estimate functions
+        def smaller_than_time_constant(time = None, variablevalue = None):
+            eq = self.equation
+            nonlin = eq.nonlinear_addend(time=time,variablevalue=variablevalue)
+            assert nonlin == 0, "not a linear equation"
+            lin = eq.linear_factor(time = time)
+            assert lin < 0, "not a decay equation"
+            tau = abs(1 / lin) # time constant
+            return 0.01 * tau # timestep must be smaller than time constant
+        # fallback function
+        def nothing(*args,**kwargs):
+            return None
+
+        # mapping of schemes to functions
+        schemes = { 
+            EulerExplicit: smaller_than_time_constant,
+            EulerImplicit: smaller_than_time_constant,
+            RungeKutta4:   smaller_than_time_constant, # TODO correct?
+            }
+
+        fun = schemes.get(self.__class__, nothing ) # get the function
+        timestep = fun(time = time, variablevalue = variablevalue) # call it
+        return timestep # return
+
     def needed_timesteps(self, timestep):
         """ Given a timestep to integrate from now on, what other timesteps of
         the dependencies are needed?
@@ -237,17 +306,26 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         """
         assert utils.is_numeric(until), "until needs to be numeric"
         if time is None: time = self.variable.time
-        if until is None: until = time + self.max_timestep
+        current_max_timestep = self.max_timestep
+        self.logger.debug("current maximum timestep is {}".format(
+            current_max_timestep))
+        if until is None: until = time + current_max_timestep
+        self.logger.debug("integrating until time {}".format(until))
         time_now = time
         while time_now < until:
+            self.logger.debug(("current time {} is smaller than until time {}"
+                ).format(time_now,until))
             time_left = until - time_now
-            if time_left < self.max_timestep: # full max_timestep fits
-                timestep = self.max_timestep 
+            if time_left > current_max_timestep: # full max_timestep fits
+                timestep = current_max_timestep
             else:
                 timestep = time_left
+            self.logger.debug(("integrate one step from time {} with " 
+                "timestep {}").format(time_now,timestep))
             # integrate one step
             self.integrate_step( time = time_now, timestep = timestep )
             time_now += timestep
+        self.logger.debug(("reached until time {}").format(time_now))
             
 
     def integrate_step(self, time = None, timestep = None):
