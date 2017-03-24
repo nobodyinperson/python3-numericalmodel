@@ -284,8 +284,9 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
             return np.ones_like(times) * self.values[-1]
 
         if self.interpolation == "zero":
-            # "zero" interoplation returns ALWAYS the left neighbour.
-            # but if we request this specific time, we want to have it.
+            # "zero" interoplation returns the left neighbour on the last value?
+            # not the last value itselt? Strange...
+            # If we request this specific time, we want to have it!
             return self.interpolator(times+1e-10) # return
         else:
             return self.interpolator(times) # return

@@ -167,9 +167,14 @@ class InterfaceValueInterpolationTest(InterfaceValueTest):
         # test inside range interpolation
         for n in range(self.rg.size-1):
             t = self.rg[:n+1]
+            tw = t 
+            self.logger.debug("val({})={} should be {}".format(tw,val(tw),t))
+            self.assertTrue(np.allclose(val(tw),t))
             tw = t+0.5
             self.logger.debug("val({}) should be {}".format(val(tw),t+1))
             self.assertTrue(np.allclose(val(tw),t))
+        # test last value
+        self.assertEqual( val( val.time ), val() )
         # test outside range interpolation
         self.assertEqual(val(self.rg.min()-1),self.rg.min())
         self.assertEqual(val(self.rg.max()+1),self.rg.max())
@@ -182,12 +187,17 @@ class InterfaceValueInterpolationTest(InterfaceValueTest):
         # test inside range interpolation
         for n in range(self.rg.size-1):
             t = self.rg[:n+1]
+            tw = t 
+            self.logger.debug("val({})={} should be {}".format(tw,val(tw),t))
+            self.assertTrue(np.allclose(val(tw),t))
             tw = t + 0.499999999
             self.logger.debug("val({})={} should be {}".format(tw,val(tw),t))
             self.assertTrue(np.allclose(val(tw),t))
             tw = t + 0.500001
             self.logger.debug("val({})={} should be {}".format(tw,val(tw),t+1))
             self.assertTrue(np.allclose(val(tw),t+1))
+        # test last value
+        self.assertEqual( val( val.time ), val() )
         # test outside range interpolation
         self.assertEqual(val(self.rg.min()-1),self.rg.min())
         self.assertEqual(val(self.rg.max()+1),self.rg.max())
@@ -200,9 +210,14 @@ class InterfaceValueInterpolationTest(InterfaceValueTest):
         # test inside range interpolation
         for n in range(self.rg.size-1):
             t = self.rg[:n+1]
+            tw = t 
+            self.logger.debug("val({})={} should be {}".format(tw,val(tw),t))
+            self.assertTrue(np.allclose(val(tw),t))
             tw = t+0.5
             self.logger.debug("val({}) should be {}".format(val(tw),tw))
             self.assertTrue(np.allclose(val(tw),tw))
+        # test last value
+        self.assertEqual( val( val.time ), val() )
         # test outside range interpolation
         self.assertEqual(val(self.rg.min()-1),self.rg.min())
         self.assertEqual(val(self.rg.max()+1),self.rg.max())
