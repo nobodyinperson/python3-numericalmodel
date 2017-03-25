@@ -214,29 +214,12 @@ class NumericalModel(GenericModel):
         Args:
             final_time (float): time to integrate until
         """
-        self.logger.debug("start integration")
-        while self.model_time < final_time:
-            self.logger.debug("current model time {} is smaller than " 
-                "final time {}".format(self.model_time, final_time))
-            biggest_timestep = max(
-                [s.max_timestep for s in self.numericalschemes.values()])
-            run_time_left = final_time - self.model_time
-            if run_time_left > biggest_timestep:
-                big_timestep = biggest_timestep
-            else:
-                big_timestep = run_time_left
-
-            for scheme in self.numericalschemes.values():
-                self.logger.debug(
-                    ("integrate scheme '{}' for equation '{}' until time {}"
-                    ).format( scheme.description,
-                    scheme.equation.description,self.model_time + big_timestep))
-                scheme.integrate(
-                    time = self.model_time,
-                    until = self.model_time + big_timestep)
-                
-            self.model_time = self.model_time + big_timestep
-        self.logger.debug("end of integration")
+        self.logger.info("start integration")
+        self.numericalschemes.integrate( 
+            start_time = self.model_time,
+            final_time = final_time,
+            )
+        self.logger.info("end of integration")
 
     def __str__(self):
         """ Stringification: summary

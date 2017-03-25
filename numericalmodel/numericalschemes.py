@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # system modules
 import textwrap
+import collections
 
 # internal modules
 from . import equations
@@ -22,8 +23,8 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
             description (str): short equation description
             long_description (str): long equation description
             equation (DerivativeEquation): the equation
-            fallback_max_timestep (single numeric): the fallback maximum timestep if
-                no timestep can be estimated from the equation
+            fallback_max_timestep (single numeric): the fallback maximum
+                timestep if no timestep can be estimated from the equation
             ignore_linear (bool): ignore the linear part of the equation?
             ignore_independent (bool): ignore the variable-independent part of
                 the equation?  
@@ -219,7 +220,7 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
             return 0.01 * tau # timestep must be smaller than time constant
         # fallback function
         def nothing(*args,**kwargs):
-            return None
+            raise Exception
 
         # mapping of schemes to functions
         schemes = { 
@@ -305,7 +306,7 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
                 max_timestep further.
         """
         assert utils.is_numeric(until), "until needs to be numeric"
-        if time is None: time = self.variable.time
+        if time is None: time = self.equation.variable.time
         current_max_timestep = self.max_timestep
         self.logger.debug("current maximum timestep is {}".format(
             current_max_timestep))
@@ -502,6 +503,7 @@ class RungeKutta4(NumericalScheme):
     def step(self, time = None, timestep = None, tendency = True):
         if timestep is None: timestep = self.max_timestep
         v = self.equation.variable
+        if time is None: time = v.time
         # get equation parts
         linear = self.linear_factor( time = time )
         indep  = self.independent_addend( time = time )
@@ -550,15 +552,87 @@ class RungeKutta4(NumericalScheme):
 class SetOfNumericalSchemes(utils.SetOfObjects):
     """ Base class for sets of NumericalSchemes
     """
-    def __init__(self, elements = []):
+    def __init__(self, elements = [], fallback_plan = None):
         """ class constructor
         Args:
             elements (list of NumericalScheme instance): the numerical schemes
+            fallback_plan (list): the fallback plan if automatic planning fails.
+                Depending on the combination of numerical scheme and equations,
+                a certain order or solving the equations is crucial. For some
+                cases, the order can be determined automatically, but if that
+                fails, one has to provide this information by hand.
+                Has to be a list of [varname, [timestep1,timestep2,...]] pairs.
+                varname: the name of the equation variable. Obviously there has
+                         to be at least one entry in the list for each equation.
+                timestepN: the normed timesteps (betw. 0 and 1) to calculate.
+                           Normed means, that if it is requested to integrate
+                           the set of numerical equations by an overall 
+                           timestep, what percentages of this timestep have to 
+                           be available of this variable. E.g. an overall
+                           timestep of 10 is requested. Another equation needs
+                           this variable at the timesteps 2 and 8. Then the
+                           timesteps would be [0.2,0.8].
+                Obviously, the equations that looks farest into the future (e.g.
+                Runge-Kutta or Euler-Implicit) has to be last in this
+                fallback_plan list.
         """
         utils.SetOfObjects.__init__(self, # call SetOfObjects constructor
             elements = elements, 
             element_type = NumericalScheme, # only NumericalScheme is allowed
             )
+
+        # set properties
+        if fallback_plan is None:
+            self.fallback_plan = self._default_fallback_plan
+        else: self.fallback_plan = fallback_plan
+
+    ##################
+    ### Properties ###
+    ##################
+    @property
+    def plan(self):
+        """ The plan for this set of numerical schemes
+        """
+        try: # try automatic planning
+            plan = self._automatic_plan
+        except: # automatic planning didn't work
+            plan = self.fallback_plan # use fallback
+        return plan
+
+    @property
+    def fallback_plan(self):
+        try: self._fallback_plan
+        except AttributeError: self._fallback_plan = self._default_fallback_plan
+        return self._fallback_plan
+
+    @fallback_plan.setter
+    def fallback_plan(self, newfallback_plan):
+        try:
+            variables = { p[0] for p in newfallback_plan }
+            assert all( v in variables for v in self.keys() ), \
+                "not all equations present in plan"
+            timesteps = [ np.asarray(p[1]) for p in newfallback_plan ]
+            assert all( np.all( np.logical_and(0<=ts,ts<=1) ) \
+                for ts in timesteps), \
+                "timesteps outside (0,1) requested in plan"
+        except:
+            raise ValueError("wrong scheme plan format")
+        self._fallback_plan = newfallback_plan
+
+    @property
+    def _default_fallback_plan(self):
+        # stupidest plan: solve equations in alphabetical order
+        plan = [ [var,[1]] for var in sorted(self.keys()) ]
+        return plan
+
+    @property
+    def _automatic_plan(self):  
+        """ Try to determine the scheme plan based on the equations and the
+            numerical schemes
+        """
+        # TODO: This definitely has to be implemented for convenience
+        raise NotImplementedError("Automatic planning is definitely possible, " 
+            "but not yet implemented")
 
     ###############
     ### Methods ###
@@ -572,3 +646,45 @@ class SetOfNumericalSchemes(utils.SetOfObjects):
                 id is used.
         """
         return obj.equation.variable.id
+
+    def integrate(self, start_time, final_time):
+        """ Integrate the model until final_time
+        Args:
+            start_time (float): the starting time
+            final_time (float): time to integrate until
+        """
+        self.logger.info("start integration")
+        current_time = start_time
+        while current_time < final_time:
+            self.logger.debug("current time {} is smaller than " 
+                "final time {}".format(current_time, final_time))
+            # timestep of most dependent equation
+            biggest_timestep = self[self.plan[-1][0]].max_timestep
+            self.logger.debug("timestep of last scheme: {}".format(
+                biggest_timestep))
+            run_time_left = final_time - current_time
+            if run_time_left > biggest_timestep:
+                big_timestep = biggest_timestep
+            else:
+                big_timestep = run_time_left
+
+            for plan_step in self.plan:
+                scheme_time = current_time
+                varname = plan_step[0] # variable name
+                scheme = self[varname] # get scheme
+                timesteps = np.asarray( plan_step[1] ) * biggest_timestep 
+                # self.logger.debug("timesteps: {}".format(timesteps))
+                for ts in timesteps: # loop over all timesteps
+                    until_time = current_time + ts
+                    self.logger.debug(
+                        ("integrate scheme '{}' for equation '{}' until time {}"
+                        ).format( scheme.description,
+                        scheme.equation.description, until_time))
+                    scheme.integrate(
+                        time = scheme_time,
+                        until = until_time)
+                    scheme_time = current_time + ts
+                
+            current_time = current_time + big_timestep
+        self.logger.info("end of integration")
+
