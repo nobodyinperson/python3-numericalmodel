@@ -4,6 +4,8 @@
 import os
 from setuptools import setup, find_packages
 
+from numericalmodel import __version__
+
 def read_file(file):
     """ Read file relative to this file
     """
@@ -14,7 +16,7 @@ def read_file(file):
 # take metadata from setup.cfg
 setup( 
     name = 'numericalmodel',
-    version = '0.0.1',
+    version = __version__,
     description = 'abstract classes to set up and run a numerical model',
     long_description = read_file("README.md"),
     keywords = [ 'modelling' ],
@@ -22,15 +24,16 @@ setup(
     author = 'Yann Büchau',
     author_email = 'yann.buechau@web.de',
     url = 'https://github.com/nobodyinperson/python3-numericalmodel',
+    download_url = ("https://github.com/nobodyinperson/" 
+        "python3-numericalmodel/archive/v{}.tar.gz").format(__version__),
     classifiers = [
             'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
             'Programming Language :: Python :: 3.5',
             'Operating System :: OS Independent',
-            'Topic :: Scientific / Engineering',
             'Topic :: Software Development :: Libraries :: Python Modules',
         ],
     test_suite = 'tests',
     tests_require = [ 'numpy' ],
-    install_requires = [ 'numpy' ],
+    install_requires = [ 'numpy', 'scipy' ],
     packages = find_packages(exclude=['tests']),
     )
