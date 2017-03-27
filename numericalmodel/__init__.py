@@ -15,4 +15,9 @@ __version__ = "0.0.3"
 
 __all__ = []
 
+__doc__ = \
+"""
+numericalmodel Python module
+"""
+
 

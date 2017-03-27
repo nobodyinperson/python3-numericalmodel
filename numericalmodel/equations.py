@@ -144,7 +144,7 @@ class DerivativeEquation(Equation):
         """ Calculate the derivative's linear factor in front of the variable
 
         Args:
-            times [Optional(single numeric value)]: the time to calculate the 
+            times (single numeric value, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
         """
         raise NotImplementedError("subclasses must override this method")
@@ -154,7 +154,7 @@ class DerivativeEquation(Equation):
         variable.
 
         Args:
-            times [Optional(single numeric value)]: the time to calculate the 
+            times (single numeric value, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
         """
         raise NotImplementedError("subclasses must override this method")
@@ -164,9 +164,9 @@ class DerivativeEquation(Equation):
         of the variable.
 
         Args:
-            times [Optional(single numeric value)]: the time to calculate the 
+            times (single numeric value, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
-            variablevalue [Optional(np.array)]: the variable vaulue to use. 
+            variablevalue (np.array, optional): the variable vaulue to use. 
                 Defaults to the value of self.variable at the given time.
 
         """
@@ -176,8 +176,10 @@ class DerivativeEquation(Equation):
         """ Calculate the derivative (right-hand-side) of the equation
 
         Args:
-            times [Optional(single numeric value)]: the time to calculate the derivative. Defaults to the variable's current (last) time.
-            variablevalue [Optional(np.array)]: the variable vaulue to use.  Defaults to the value of self.variable at the given time.
+            times (single numeric value, optional): the time to calculate the 
+                derivative. Defaults to the variable's current (last) time.
+            variablevalue (np.array, optional): the variable vaulue to use.  
+                Defaults to the value of self.variable at the given time.
 
         Returns:
             the derivatives corresponding to the given time as np.array

@@ -19,8 +19,8 @@ class GenericModel(utils.LoggerObject,utils.ReprObject):
             ):
         """ Class constructor
         Args:
-            name (str): the model name
-            version (str): the model version
+            name (str, optional): the model name
+            version (str, optional): the model version
             description (str): a short model description
             long_description (str): an extended model description
             authors (str, list or dict): model authors.

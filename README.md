@@ -12,3 +12,7 @@ This package is on [PyPi](https://pypi.python.org). To install `numericalmodel`,
 ```bash
 pip3 install --user numericalmodel
 ```
+
+## Documentation
+
+You can find detailed documentation of this package on [ReadTheDocs](https://python3-numericalmodel.readthedocs.io).

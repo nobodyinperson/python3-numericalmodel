@@ -1,6 +1,11 @@
 numericalmodel package
 ======================
 
+.. automodule:: numericalmodel
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -53,10 +58,3 @@ numericalmodel.utils module
     :show-inheritance:
 
 
-Module contents
----------------
-
-.. automodule:: numericalmodel
-    :members:
-    :undoc-members:
-    :show-inheritance:

@@ -174,9 +174,9 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
             max_timestep_estimate, then the fallback.
 
         Args:
-            times [Optional(single numeric value)]: the time to calculate the 
+            times (single numeric value, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
-            variablevalue [Optional(np.array)]: the variable vaulue to use. 
+            variablevalue (np.array, optional): the variable vaulue to use. 
                 Defaults to the value of self.variable at the given time.
 
         Returns:
@@ -202,9 +202,9 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         a maximum timestep. Subclasses may override this.
 
         Args:
-            times [Optional(single numeric value)]: the time to calculate the 
+            times (single numeric value, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
-            variablevalue [Optional(np.array)]: the variable vaulue to use. 
+            variablevalue (np.array, optional): the variable vaulue to use. 
                 Defaults to the value of self.variable at the given time.
 
         Returns:
@@ -264,7 +264,7 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         """ Calculate the equation's linear factor in front of the variable.
 
         Args:
-            times [Optional(single numeric value)]: the time to calculate the 
+            times (single numeric value, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
 
         Returns:
@@ -280,7 +280,7 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         variable.
         
         Args:
-            times [Optional(single numeric value)]: the time to calculate the 
+            times (single numeric value, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
 
         Returns:
@@ -297,9 +297,9 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         of the variable.
 
         Args:
-            times [Optional(single numeric value)]: the time to calculate the 
+            times (single numeric value, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
-            variablevalue [Optional(np.array)]: the variable vaulue to use. 
+            variablevalue (np.array, optional): the variable vaulue to use. 
                 Defaults to the value of self.variable at the given time.
 
         Returns:
@@ -375,11 +375,11 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         Args:
             time (single numeric): The time to calculate the step FROM
             timestep (single numeric): The timestep to calculate the step
-            tendency [Optional(bool)]: return the tendency or the actual value
-            of the variable after the timestep?
+            tendency (bool, optional): return the tendency or the actual value
+                of the variable after the timestep?
 
         Returns:
-            res (np.array): The resulting variable value or tendency
+            ndarray : The resulting variable value or tendency
         """
         raise NotImplementedError("Subclasses should override this")
 

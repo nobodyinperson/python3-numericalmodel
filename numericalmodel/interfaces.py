@@ -187,7 +187,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
     @next_time.setter
     def next_time(self, newtime):
         if newtime is None: # if set to none
-            if hasattr(self, "_next_time"): del self._next_time # delete attribute
+            if hasattr(self, "_next_time"): del self._next_time # del attribute
         else: # set to something else
             assert utils.is_numeric(newtime), "next_time has to be numeric"
             assert np.asarray(newtime).size == 1, \
@@ -271,8 +271,9 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
 
     def __call__(self, times = None):
         """ When called, return the value, optionally at a specific time
+
         Args:
-            times [Optional(numeric)]: The times to obtain data from
+            times (numeric, optional): The times to obtain data from
         """
         assert self.times.size, "{}: no values recorded yet".format(self.name)
         if times is None:

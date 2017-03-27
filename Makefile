@@ -2,19 +2,20 @@
 
 SETUP.PY = ./setup.py
 PACKAGE_FOLDER = numericalmodel
-INIT.PY = $(shell find $(PACKAGE_FOLDER) -maxdepth 1 -type f -name '__init__.py')
-PYTHON_SOURCES = $(shell find $(PACKAGE_FOLDER) -type f -iname '*.py')
-
 DOCS_FOLDER = docs
 DOCS_API_FOLDER = docs/source/api
+INIT.PY = $(shell find $(PACKAGE_FOLDER) -maxdepth 1 -type f -name '__init__.py')
+RST_SOURCES = $(shell find $(DOCS_FOLDER) -type f -iname '*.rst')
+PYTHON_SOURCES = $(shell find $(PACKAGE_FOLDER) -type f -iname '*.py')
+
 
 VERSION = $(shell perl -ne 'if (s/^.*__version__\s*=\s*"(\d+\.\d+.\d+)".*$$/$$1/g){print;exit}' $(INIT.PY))
 
 .PHONY: all
 all: wheel docs
 
-docs: $(PYTHON_SOURCES)
-	sphinx-apidoc -f -o $(DOCS_API_FOLDER) $(PACKAGE_FOLDER)
+docs: $(PYTHON_SOURCES) $(RST_SOURCES)
+	sphinx-apidoc -M -f -o $(DOCS_API_FOLDER) $(PACKAGE_FOLDER)
 	cd $(DOCS_FOLDER) && make html
 
 .PHONY: build
@@ -62,7 +63,7 @@ testverbose:
 	python3 -c 'import tests;tests.runall(verbose=True)'
 
 .PHONY: clean
-clean:
+clean: distclean
 
 .PHONY: distclean
 distclean: clean
@@ -70,6 +71,7 @@ distclean: clean
 	rm -rf build
 	rm -rf $$(find -type d -iname '__pycache__')
 	rm -f $$(find -type f -iname '*.pyc')
+	(cd $(DOCS_FOLDER) && make clean)
 
 .PHONY: travis-test
 travis-test: wheel docs setup-test

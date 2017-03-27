@@ -1,15 +1,17 @@
-.. numericalmodel documentation master file, created by
-   sphinx-quickstart on Mon Mar 27 15:02:32 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. # Main page
 
-Welcome to numericalmodel's documentation!
-==========================================
+``numericalmodel`` Python package documentation
+===============================================
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   whatsthis
+   basics
+   model-setup
+   examples
+   api/modules
 
 
 Indices and tables
@@ -18,3 +20,4 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
