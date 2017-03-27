@@ -3,6 +3,8 @@
 SETUP.PY = ./setup.py
 INIT.PY = $(shell find numericalmodel -maxdepth 1 -type f -name '__init__.py')
 
+VERSION = $(shell perl -ne 'if (s/^.*__version__\s*=\s*"(\d+\.\d+.\d+)".*$$/$$1/g){print;exit}' $(INIT.PY))
+
 .PHONY: all
 all: wheel
 
@@ -15,11 +17,11 @@ wheel:
 	$(SETUP.PY) sdist bdist_wheel
 
 .PHONY: upload
-upload: wheel
+upload: wheel tag
 	$(SETUP.PY) sdist upload -r pypi
 
 .PHONY: upload-test
-upload-test: wheel
+upload-test: wheel tag
 	$(SETUP.PY) sdist upload -r pypitest
 
 .PHONY: increase-patch
@@ -33,6 +35,10 @@ increase-minor: $(INIT.PY)
 .PHONY: increase-major
 increase-major: $(INIT.PY)
 	perl -pi -e 's/(__version__\s*=\s*")(\d+)\.(\d+).(\d+)(")/$$1.(join ".",$$2+1,0,0).$$5/ge' $(INIT.PY)
+
+.PHONY: tag
+tag:
+	git tag -f v$(VERSION)
 
 .PHONY: setup-test
 setup-test:
