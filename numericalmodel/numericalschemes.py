@@ -19,6 +19,7 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         ignore_linear = None, ignore_independent = None, 
         ignore_nonlinear = None):
         """ Class constructor
+
         Args:
             description (str): short equation description
             long_description (str): long equation description
@@ -171,11 +172,13 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
     def max_timestep(self, time = None, variablevalue = None):
         """ Return a maximum timestep for the current state. First tries the
             max_timestep_estimate, then the fallback.
+
         Args:
             times [Optional(single numeric value)]: the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
             variablevalue [Optional(np.array)]: the variable vaulue to use. 
                 Defaults to the value of self.variable at the given time.
+
         Returns:
             timestep (single numeric): an estimate of the current
             maximum timestep
@@ -197,14 +200,17 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
     def max_timestep_estimate(self, time = None, variablevalue = None):
         """ Based on this numerical scheme and the equation parts, estimate
         a maximum timestep. Subclasses may override this.
+
         Args:
             times [Optional(single numeric value)]: the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
             variablevalue [Optional(np.array)]: the variable vaulue to use. 
                 Defaults to the value of self.variable at the given time.
+
         Returns:
             timestep (single numeric or bogus): an estimate of the current
             maximum timestep. Definitely check the result for integrity.
+
         Raises:
             Any error if something goes wrong. Definitely wrap a call to this
             method into a try:... except:... block.
@@ -236,10 +242,13 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
     def needed_timesteps(self, timestep):
         """ Given a timestep to integrate from now on, what other timesteps of
         the dependencies are needed?
+
         Args:
             timestep (single numeric value): the timestep to calculate 
+
         Returns:
             np.array of needed timesteps
+
         Note:
             timestep 0 means current time
         """
@@ -253,9 +262,11 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
 
     def linear_factor(self, time = None):
         """ Calculate the equation's linear factor in front of the variable.
+
         Args:
             times [Optional(single numeric value)]: the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
+
         Returns:
             res (numeric): the linear factor or 0 if ignore_linear is True.
         """
@@ -267,9 +278,11 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
     def independent_addend(self, time = None):
         """ Calculate the equation's addend part that is independent of the
         variable.
+        
         Args:
             times [Optional(single numeric value)]: the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
+
         Returns:
             res (numeric): the independent addend or 0 if ignore_independent 
             is True.
@@ -282,11 +295,13 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
     def nonlinear_addend(self, time = None, variablevalue = None):
         """ Calculate the derivative's addend part that is nonlinearly dependent
         of the variable.
+
         Args:
             times [Optional(single numeric value)]: the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
             variablevalue [Optional(np.array)]: the variable vaulue to use. 
                 Defaults to the value of self.variable at the given time.
+
         Returns:
             res (numeric): the nonlinear addend or 0 if ignore_nonlinear is 
             True.
@@ -299,6 +314,7 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
 
     def integrate(self, time = None, until = None):
         """ Integrate until a certain time, respecting the max_timestep.
+
         Args:
             time (single numeric): The time to begin. Default to current
                 variable time.
@@ -331,6 +347,7 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
 
     def integrate_step(self, time = None, timestep = None):
         """ Integrate "timestep" forward and set results in-place
+
         Args:
             time (single numeric): The time to calculate the step FROM. Defaults
                 to the current variable time.
@@ -354,11 +371,13 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
 
     def step(self, time, timestep, tendency=True):
         """ Integrate one "timtstep" from "time" forward and return value
+        
         Args:
             time (single numeric): The time to calculate the step FROM
             timestep (single numeric): The timestep to calculate the step
             tendency [Optional(bool)]: return the tendency or the actual value
-                of the variable after the timestep?
+            of the variable after the timestep?
+
         Returns:
             res (np.array): The resulting variable value or tendency
         """
@@ -554,6 +573,7 @@ class SetOfNumericalSchemes(utils.SetOfObjects):
     """
     def __init__(self, elements = [], fallback_plan = None):
         """ class constructor
+
         Args:
             elements (list of NumericalScheme instance): the numerical schemes
             fallback_plan (list): the fallback plan if automatic planning fails.
@@ -639,8 +659,10 @@ class SetOfNumericalSchemes(utils.SetOfObjects):
     ###############
     def _object_to_key(self, obj):
         """ key transformation function. 
+
         Args:
             obj (object): the element
+
         Returns:
             key (str): the unique key for this object. The equation's variable's
                 id is used.
@@ -649,6 +671,7 @@ class SetOfNumericalSchemes(utils.SetOfObjects):
 
     def integrate(self, start_time, final_time):
         """ Integrate the model until final_time
+
         Args:
             start_time (float): the starting time
             final_time (float): time to integrate until

@@ -1,12 +1,21 @@
 #!/usr/bin/env make -f
 
 SETUP.PY = ./setup.py
-INIT.PY = $(shell find numericalmodel -maxdepth 1 -type f -name '__init__.py')
+PACKAGE_FOLDER = numericalmodel
+INIT.PY = $(shell find $(PACKAGE_FOLDER) -maxdepth 1 -type f -name '__init__.py')
+PYTHON_SOURCES = $(shell find $(PACKAGE_FOLDER) -type f -iname '*.py')
+
+DOCS_FOLDER = docs
+DOCS_API_FOLDER = docs/source/api
 
 VERSION = $(shell perl -ne 'if (s/^.*__version__\s*=\s*"(\d+\.\d+.\d+)".*$$/$$1/g){print;exit}' $(INIT.PY))
 
 .PHONY: all
-all: wheel
+all: wheel docs
+
+docs: $(PYTHON_SOURCES)
+	sphinx-apidoc -f -o $(DOCS_API_FOLDER) $(PACKAGE_FOLDER)
+	cd $(DOCS_FOLDER) && make html
 
 .PHONY: build
 build: 
@@ -62,3 +71,5 @@ distclean: clean
 	rm -rf $$(find -type d -iname '__pycache__')
 	rm -f $$(find -type f -iname '*.pyc')
 
+.PHONY: travis-test
+travis-test: wheel docs setup-test

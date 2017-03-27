@@ -29,6 +29,7 @@ class NumericalModel(GenericModel):
             numericalschemes = None,
             ):
         """ Class constructor
+
         Args:
             name (str): the model name
             version (str): the model version
@@ -211,6 +212,7 @@ class NumericalModel(GenericModel):
 
     def integrate(self, final_time):
         """ Integrate the model until final_time
+
         Args:
             final_time (float): time to integrate until
         """

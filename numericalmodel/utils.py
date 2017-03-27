@@ -19,8 +19,10 @@ import numpy as np
 def is_numeric(x):
     """ Check if a given value is numeric, i.e. whether numeric operations can
     be done with it.  
+
     Args:
         x (any): the input value
+
     Returns:
         bool: True if the value is numeric, False otherwise
     """
@@ -42,6 +44,7 @@ class LoggerObject(object):
     """
     def __init__(self, logger = logging.getLogger(__name__)):
         """ class constructor
+
         Args:
             logger (logging.Logger): the logger to use
         """
@@ -80,6 +83,7 @@ class ReprObject(object):
         """ Get the full string of a variable
         Args:
             var (variable): The variable to get the full string from
+
         Returns:
             class_str (str): The full usable variable string including the
                 module 
@@ -207,8 +211,10 @@ class SetOfObjects(ReprObject, LoggerObject, collections.MutableMapping):
     ###############
     def _object_to_key(self, obj):
         """ key transformation function. Subclasses should override this.
+
         Args:
             obj (object): object
+
         Returns:
             key (str): the unique key for this object. Defaults to repr(obj)
         """

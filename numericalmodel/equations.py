@@ -20,6 +20,7 @@ class Equation(utils.LoggerObject,utils.ReprObject):
         input = None,
         ):
         """ Class constructor
+
         Args:
             description (str): short equation description
             long_description (str): long equation description
@@ -106,8 +107,10 @@ class Equation(utils.LoggerObject,utils.ReprObject):
     ###############
     def depends_on(self, id):
         """ Check if this equation depends on a given InterfaceValue's id
+
         Args:
             id (str or InterfaceValue): InterfaceValue or id
+
         Returns:
             True if 'id' is in self.input, False if otherwise
         """
@@ -139,6 +142,7 @@ class DerivativeEquation(Equation):
     ###############
     def linear_factor(self, time = None):
         """ Calculate the derivative's linear factor in front of the variable
+
         Args:
             times [Optional(single numeric value)]: the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
@@ -148,6 +152,7 @@ class DerivativeEquation(Equation):
     def independent_addend(self, time = None):
         """ Calculate the derivative's addend part that is independent of the
         variable.
+
         Args:
             times [Optional(single numeric value)]: the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
@@ -157,21 +162,23 @@ class DerivativeEquation(Equation):
     def nonlinear_addend(self, time = None, variablevalue = None):
         """ Calculate the derivative's addend part that is nonlinearly dependent
         of the variable.
+
         Args:
             times [Optional(single numeric value)]: the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
             variablevalue [Optional(np.array)]: the variable vaulue to use. 
                 Defaults to the value of self.variable at the given time.
+
         """
         raise NotImplementedError("subclasses must override this method")
 
     def derivative(self, time = None, variablevalue = None):
         """ Calculate the derivative (right-hand-side) of the equation
+
         Args:
-            times [Optional(single numeric value)]: the time to calculate the 
-                derivative. Defaults to the variable's current (last) time.
-            variablevalue [Optional(np.array)]: the variable vaulue to use. 
-                Defaults to the value of self.variable at the given time.
+            times [Optional(single numeric value)]: the time to calculate the derivative. Defaults to the variable's current (last) time.
+            variablevalue [Optional(np.array)]: the variable vaulue to use.  Defaults to the value of self.variable at the given time.
+
         Returns:
             the derivatives corresponding to the given time as np.array
         """
