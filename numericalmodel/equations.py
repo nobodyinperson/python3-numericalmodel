@@ -13,21 +13,21 @@ import numpy as np
 
 
 class Equation(utils.LoggerObject,utils.ReprObject):
-    """ Base class for equations
+    """ 
+    Base class for equations
+
+    Args:
+        description (str, optional): short equation description
+        long_description (str, optional): long equation description
+        variable (InterfaceVariable, optional): the variable obtained by solving
+            the equation
+        input (SetOfInterfaceValues, optional): set of values needed by the
+            equation 
     """
     def __init__(self, variable = None, 
         description = None, long_description = None,
         input = None,
         ):
-        """ Class constructor
-
-        Args:
-            description (str): short equation description
-            long_description (str): long equation description
-            variable (InterfaceVariable): the variable obtained by solving the
-                equation
-            input (SetOfInterfaceValues): set of values needed by the equation
-        """
         if variable is None: self.variable = self._default_variable
         else:                self.variable = variable
         if description is None: self.description = self._default_description
@@ -40,6 +40,11 @@ class Equation(utils.LoggerObject,utils.ReprObject):
 
     @property
     def variable(self):
+        """ 
+        The variable the equation is able to solve for
+
+        :type: :any:`StateVariable`
+        """
         try:                   self._variable
         except AttributeError: self._variable = self._default_variable
         return self._variable
@@ -52,10 +57,20 @@ class Equation(utils.LoggerObject,utils.ReprObject):
         
     @property
     def _default_variable(self):
+        """ 
+        The default variable if none was given
+
+        :type: :any:`StateVariable`
+        """
         return interfaces.StateVariable()
 
     @property
     def description(self):
+        """ 
+        The description of the equation
+
+        :type: :any:`str`
+        """
         try:                   self._description
         except AttributeError: self._description = self._default_description
         return self._description
@@ -67,10 +82,22 @@ class Equation(utils.LoggerObject,utils.ReprObject):
         
     @property
     def _default_description(self):
+        """ 
+        The default description if none was given
+
+        :type: :any:`str`
+        """
         return "an equation"
 
     @property
     def input(self):
+        """ 
+        The input needed by the equation. Only real dependencies should be
+        included. If the equation depends on the :any:`variable`, it should also
+        be included in :any:`input`.
+
+        :type: :any:`SetOfInterfaceValues`
+        """
         try:                   self._input
         except AttributeError: self._input = self._default_input
         return self._input
@@ -83,10 +110,20 @@ class Equation(utils.LoggerObject,utils.ReprObject):
         
     @property
     def _default_input(self):
+        """ 
+        The default input if none was given
+
+        :type: :any:`SetOfInterfaceValues`
+        """
         return interfaces.SetOfInterfaceValues()
 
     @property
     def long_description(self):
+        """ 
+        The longer description of this equation
+
+        :type: :any:`str`
+        """
         try:                   self._long_description
         except AttributeError: 
             self._long_description = self._default_long_description
@@ -100,19 +137,24 @@ class Equation(utils.LoggerObject,utils.ReprObject):
         
     @property
     def _default_long_description(self):
+        """ 
+        The default long description if none was given
+
+        :type: :any:`str`
+        """
         return "This is an equation."
 
     ###############
     ### Methods ###
     ###############
     def depends_on(self, id):
-        """ Check if this equation depends on a given InterfaceValue's id
+        """ Check if this equation depends on a given :any:`InterfaceValue`
 
         Args:
-            id (str or InterfaceValue): InterfaceValue or id
+            id (str or InterfaceValue): an :any:`InterfaceValue` or an id
 
         Returns:
-            True if 'id' is in self.input, False if otherwise
+            bool : ``True`` if 'id' is in :any:`input`, ``False`` otherwise
         """
         try: ident = id.id
         except AttributeError: ident = id
@@ -121,7 +163,11 @@ class Equation(utils.LoggerObject,utils.ReprObject):
         return ident in self.input.keys()
 
     def __str__(self):
-        """ Stringification: summary
+        """ 
+        Stringification
+
+        Returns:
+            str : a summary
         """
         string = (
         " \"{description}\" \n"
@@ -135,32 +181,43 @@ class Equation(utils.LoggerObject,utils.ReprObject):
 
 
 class DerivativeEquation(Equation):
-    """ Class to represent a derivative equation
+    """ 
+    Class to represent a derivative equation
     """
     ###############
     ### Methods ###
     ###############
     def linear_factor(self, time = None):
-        """ Calculate the derivative's linear factor in front of the variable
+        """ 
+        Calculate the derivative's linear factor in front of the variable
 
         Args:
-            times (single numeric value, optional): the time to calculate the 
+            time (single numeric value, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
+
+        Returns:
+            numpy.array : the equation's linear factor at the corresponding time
         """
         raise NotImplementedError("subclasses must override this method")
 
     def independent_addend(self, time = None):
-        """ Calculate the derivative's addend part that is independent of the
+        """ 
+        Calculate the derivative's addend part that is independent of the
         variable.
 
         Args:
             times (single numeric value, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
+
+        Returns:
+            numpy.array : the equation's variable-independent addend at the
+            corresponding time
         """
         raise NotImplementedError("subclasses must override this method")
 
     def nonlinear_addend(self, time = None, variablevalue = None):
-        """ Calculate the derivative's addend part that is nonlinearly dependent
+        """ 
+        Calculate the derivative's addend part that is nonlinearly dependent
         of the variable.
 
         Args:
@@ -169,6 +226,9 @@ class DerivativeEquation(Equation):
             variablevalue (np.array, optional): the variable vaulue to use. 
                 Defaults to the value of self.variable at the given time.
 
+        Returns:
+            numpy.array : the equation's nonlinear addend at the corresponding
+            time
         """
         raise NotImplementedError("subclasses must override this method")
 
@@ -182,7 +242,7 @@ class DerivativeEquation(Equation):
                 Defaults to the value of self.variable at the given time.
 
         Returns:
-            the derivatives corresponding to the given time as np.array
+            numpy.ndarray : the derivatives corresponding to the given time
         """
         if variablevalue is None: var = self.variable(time)
         else:                     var = variablevalue
@@ -200,30 +260,31 @@ class DerivativeEquation(Equation):
 
 
 class PrognosticEquation(DerivativeEquation):
-    """ Class to represent prognostic equations
+    """ 
+    Class to represent prognostic equations
     """
     pass
 
 
 class DiagnosticEquation(Equation):
-    """ Class to represent diagnostic equations
+    """ 
+    Class to represent diagnostic equations
     """
     pass
-
-
 
 
 ########################
 ### Set of Equations ###
 ########################
 class SetOfEquations(utils.SetOfObjects):
-    """ Base class for sets of Equations
+    """ 
+    Base class for sets of Equations
+
+    Args:
+        elements (list of Equations, optional): the list of :any:`Equation`
+            instances 
     """
     def __init__(self, elements = []):
-        """ class constructor
-        Args:
-            elements (list of Equations): the list of Equation instances
-        """
         utils.SetOfObjects.__init__(self, # call SetOfObjects constructor
             elements = elements, 
             element_type = Equation, # only Equation is allowed
@@ -233,12 +294,15 @@ class SetOfEquations(utils.SetOfObjects):
     ### Methods ###
     ###############
     def _object_to_key(self, obj):
-        """ key transformation function. 
+        """ 
+        key transformation function. 
+
         Args:
             obj (object): the element
+
         Returns:
-            key (str): the unique key for this object. The variable's id
-                is used.
+            str : the unique key for this object. The :any:`Equation.variable`'s
+            :any:`id` is used.
         """
         return obj.variable.id
 

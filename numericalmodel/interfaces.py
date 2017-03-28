@@ -12,7 +12,21 @@ import numpy as np
 import scipy.interpolate
 
 class InterfaceValue(utils.LoggerObject,utils.ReprObject):
-    """ Base class for model interface values
+    """ 
+    Base class for model interface values
+
+    Args:
+        name (str): value name
+        id (str): unique id
+        values (1d np.array): all values this InterfaceValue had in 
+            chronological order
+        times (1d np.array): the corresponding times to values
+        unit (str): physical unit of value
+        interpolation (str): interpolation kind. See
+            scipy.interpolate.interp1d for documentation. Defaults to 
+            "zero".
+        time_function (callable): function that returns the model time as 
+            utc unix timestamp
     """
     def __init__(self,
         name = None,
@@ -23,20 +37,6 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         values = None,
         times = None,
         ):
-        """ Class constructor
-        Args:
-            name (str): value name
-            id (str): unique id
-            values (1d np.array): all values this InterfaceValue had in 
-                chronological order
-            times (1d np.array): the corresponding times to values
-            unit (str): physical unit of value
-            interpolation (str): interpolation kind. See
-                scipy.interpolate.interp1d for documentation. Defaults to 
-                "zero".
-            time_function (callable): function that returns the model time as 
-                utc unix timestamp
-        """
         # set properties
         if time_function is None:  
             self.time_function = self._default_time_function
@@ -80,6 +80,11 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
 
     @property
     def id(self):
+        """ 
+        The unique id
+
+        :type: :any:`str`
+        """
         try:                   self._id # already defined?
         except AttributeError: self._id = self._default_id # default
         return self._id # return
@@ -91,12 +96,20 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
 
     @property
     def _default_id(self):
-        """ Default id if none was given. Subclasses should override this.
+        """ 
+        Default id if none was given. Subclasses should override this.
+
+        :type: :any:`str`
         """
         return "unnamed_variable"
 
     @property
     def unit(self):
+        """ 
+        The SI-unit. 
+
+        :type: :any:`str`, SI-unit
+        """
         try:                   self._unit # already defined?
         except AttributeError: self._unit = self._default_unit # default
         return self._unit # return
@@ -108,12 +121,20 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
 
     @property
     def _default_unit(self):
-        """ Default unit if none was given. Subclasses should override this.
+        """ 
+        The default unit if none was given.
+
+        :type: :any:`str`, SI-unit
         """
         return "1"
 
     @property
     def name(self):
+        """ 
+        The name.
+
+        :type: :any:`str`
+        """
         try:                   self._name # already defined?
         except AttributeError: self._name = self._default_name # default
         return self._name # return
@@ -125,12 +146,28 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
 
     @property
     def _default_name(self):
-        """ Default name if none was given. Subclasses should override this.
+        """ 
+        Default name if none was given.
+
+        :type: :any:`str`
         """
         return "unnamed value"
 
     @property
     def value(self):
+        """ 
+        The current value.
+
+        :getter: 
+            the return value of :any:`__call__`, i.e.  the current value.
+        :setter: 
+            When this property is set, the given value is recorded to the
+            time given by :any:`next_time`. If this time exists already in
+            :any:`times`, the corresponding value in :any:`values` is
+            overwritten.  Otherwise, the new time and value are appended to
+            :any:`times` and :any:`values`.
+        :type: numeric
+        """
         return self() # call us
 
     @value.setter
@@ -153,7 +190,10 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
 
     @property
     def values(self):
-        """ All values this InterfaceValue has ever had in chronological order
+        """ 
+        All values this InterfaceValue has ever had in chronological order
+
+        :type: :any:`numpy.ndarray`
         """
         try:                   self._values # already defined?
         except AttributeError: self._values = self._default_times # default
@@ -174,8 +214,16 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
 
     @property
     def next_time(self):
-        """ The next time to use when value is set. Defaults to the value of
-        time_function if no next_time was set.
+        """ 
+        The next time to use when :any:`value` is set. 
+        
+        :getter: 
+            Return the next time to use. Defaults to the value of
+            :any:`time_function` if no :any:`next_time` was set.
+        :setter:
+            Set the next time to use. Set to :any:`None` to unset and use the
+            default time in the getter again.
+        :type: :any:`float`
         """
         try:                   next_time = self._next_time
         except AttributeError: next_time = self.time_function()
@@ -199,12 +247,23 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
 
     @property
     def time(self):
+        """ 
+        The current time
+
+        :getter:
+            Return the current time, i.e. the last time recorded in
+            :any:`times`.
+        :type: :any:`float`
+        """
         return self.times[-1]
 
     @property
     def times(self):
-        """ All times this InterfaceValue has ever been changed in chronological
+        """ 
+        All times the :any:`value` has ever been set in chronological
         order 
+
+        :type: :any:`numpy.ndarray`
         """
         try:                   self._times # already defined?
         except AttributeError: self._times = self._default_times # default
@@ -222,10 +281,28 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
 
     @property
     def _default_times(self):
+        """ 
+        The default times to use when none were given. Defaults to empty
+        :any:`numpy.ndarray`.
+
+        :type: :any:`numpy.ndarray`
+        """
         return np.array([]) # empty array
 
     @property
     def interpolation(self):
+        """ 
+        The interpolation kind to use in the :any:`__call__` method. See
+        :any:`scipy.interpolate.interp1d` for documentation.
+
+        :getter:
+            Return the interplation kind.
+        :setter:
+            Set the interpolation kind. Reset the internal interpolator if the
+            interpolation kind changed.
+
+        :type: :any:`str`
+        """
         try:                   self._interpolation # already defined?
         except AttributeError: self._interpolation = self._default_interpolation
         return self._interpolation # return
@@ -240,13 +317,25 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
 
     @property
     def _default_interpolation(self):
-        """ Default interpolation if none was given. Subclasses may override
-        this.
+        """ 
+        Default interpolation if none was given is ``"zero"``, i.e.
+        left-neighbour interpolation. Subclasses may override this.
+
+        :type: :any:`str`
         """
         return "zero"
 
     @property
     def interpolator(self):
+        """ 
+        The interpolator for interpolation of :any:`values` over :any:`times`.
+        Creating this interpolator is costly and thus only performed on demand,
+        i.e. when :any:`__call__` is called **and** no interpolator was created
+        previously or the previously created interolator was unset before (e.g.
+        by setting a new :any:`value` or changing :any:`interpolation`)
+
+        :type: :any:`scipy.interpolate.interp1d`
+        """
         try: self._interpolator # try to access internal attribute
         except AttributeError: # doesn't exist
             self._interpolator = scipy.interpolate.interp1d( 
@@ -293,7 +382,11 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
             return self.interpolator(times) # return
 
     def __str__(self):
-        """ Stringification: summary
+        """ 
+        Stringification
+
+        Returns:
+            str : a summary
         """
         if self.values.size: value = self.value
         else:                value = "?"
@@ -311,7 +404,8 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
 ### Subclasses of InterfaceValue ###
 ####################################
 class ForcingValue(InterfaceValue):
-    """ Class for forcing values
+    """ 
+    Class for forcing values
     """
     @property
     def _default_id(self):
@@ -326,7 +420,8 @@ class ForcingValue(InterfaceValue):
         return "linear"
 
 class Parameter(InterfaceValue):
-    """ Class for parameters
+    """ 
+    Class for parameters
     """
     @property
     def _default_id(self):
@@ -341,7 +436,8 @@ class Parameter(InterfaceValue):
         return "linear"
 
 class StateVariable(InterfaceValue):
-    """ Class for state variables
+    """ 
+    Class for state variables
     """
     @property
     def _default_id(self):
@@ -360,13 +456,13 @@ class StateVariable(InterfaceValue):
 ### Sets of InterfaceValues ###
 ###############################
 class SetOfInterfaceValues(utils.SetOfObjects):
-    """ Base class for sets of interface values
+    """ 
+    Base class for sets of interface values
+
+    Args:
+        values (list of value_type-instances, optional): the list of values
     """
     def __init__(self, elements = []):
-        """ class constructor
-        Args:
-            values (list of value_type-instances): the list of values
-        """
         utils.SetOfObjects.__init__(self, # call SetOfObjects constructor
             elements = elements, 
             element_type = InterfaceValue # only InterfaceValue is allowed
@@ -374,6 +470,15 @@ class SetOfInterfaceValues(utils.SetOfObjects):
 
     @property
     def time_function(self):
+        """ 
+        The time function of all the :any:`InterfaceValue` s in the set.
+
+        :getter:
+            Return a :any:`list` of time functions from the elements
+        :setter:
+            Set the time function of each element
+        :type: (:any:`list` of) callables
+        """
         return [e.time_function for e in self.elements]
 
     @time_function.setter
@@ -387,22 +492,32 @@ class SetOfInterfaceValues(utils.SetOfObjects):
     ###############
     def _object_to_key(self, obj):
         """ key transformation function. 
+
         Args:
             obj (object): the element
+
         Returns:
-            key (str): the unique key for this object. The InterfaceValue's id
-                is used.
+            key (str): the unique key for this object. The
+            :any:`InterfaceValue.id` is used.
         """
         return obj.id
         
     def __call__(self,id):
-        """ When called, return the InterfaceValue's VALUE
+        """ 
+        Get the value of an :any:`InterfaceValue` in this set
+
+        Args:
+            id (str): the id of an :any:`InterfaceValue` in this set
+
+        Returns:
+            float : the :any:`value` of the corresponding :any:`InterfaceValue`
         """
         return self[id].value
 
 
 class SetOfParameters(SetOfInterfaceValues):
-    """ Class for a set of parameters
+    """ 
+    Class for a set of parameters
     """
     def __init__(self,elements = []):
         utils.SetOfObjects.__init__( self,
@@ -411,7 +526,8 @@ class SetOfParameters(SetOfInterfaceValues):
             )
 
 class SetOfForcingValues(SetOfInterfaceValues):
-    """ Class for a set of forcing values
+    """ 
+    Class for a set of forcing values
     """
     def __init__(self,elements = []):
         utils.SetOfObjects.__init__( self,
@@ -420,7 +536,8 @@ class SetOfForcingValues(SetOfInterfaceValues):
             )
         
 class SetOfStateVariables(SetOfInterfaceValues):
-    """ Class for a set of state variables
+    """ 
+    Class for a set of state variables
     """
     def __init__(self,elements = []):
         utils.SetOfObjects.__init__( self,

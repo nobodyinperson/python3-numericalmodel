@@ -8,7 +8,18 @@ from . import utils
 # external modules
 
 class GenericModel(utils.LoggerObject,utils.ReprObject):
-    """ Base class for models
+    """ 
+    Base class for models
+
+    Args:
+        name (str, optional): the model name
+        version (str, optional): the model version
+        description (str): a short model description
+        long_description (str): an extended model description
+        authors (str, list or dict, optional): model authors.
+            str: name of single author
+            list: list of author names
+            dict: dict of {'task': ['name1','name1']} pairs
     """
     def __init__(self,
             name = None,
@@ -17,17 +28,6 @@ class GenericModel(utils.LoggerObject,utils.ReprObject):
             long_description = None,
             authors = None,
             ):
-        """ Class constructor
-        Args:
-            name (str, optional): the model name
-            version (str, optional): the model version
-            description (str): a short model description
-            long_description (str): an extended model description
-            authors (str, list or dict): model authors.
-                str: name of single author
-                list: list of author names
-                dict: dict of {'task': ['name1','name1']} pairs
-        """
 
         self.logger = logging.getLogger(__name__) # logger 
 
@@ -50,6 +50,11 @@ class GenericModel(utils.LoggerObject,utils.ReprObject):
     ##################
     @property
     def name(self):
+        """ 
+        The model name
+
+        :type: :any:`str`
+        """
         try:                   self._name # already defined?
         except AttributeError: self._name = "unnamed model" # default
         return self._name # return
@@ -61,12 +66,20 @@ class GenericModel(utils.LoggerObject,utils.ReprObject):
 
     @property
     def _default_name(self):
-        """ Default name if none was given
+        """ 
+        Default name if none was given
+
+        :type: :any:`str`
         """
         return "generic model"
 
     @property
     def description(self):
+        """ 
+        The model description
+
+        :type: :any:`str`
+        """
         try:                   self._description # already defined?
         except AttributeError: self._description = "" # default
         return self._description # return
@@ -78,12 +91,20 @@ class GenericModel(utils.LoggerObject,utils.ReprObject):
 
     @property
     def _default_description(self):
-        """ Default description if none was given
+        """ 
+        Default description if none was given
+
+        :type: :any:`str`
         """
         return "a generic model"
 
     @property
     def long_description(self):
+        """ 
+        Longer model description
+
+        :type: :any:`str`
+        """
         try:                   self._long_description # already defined?
         except AttributeError: self._long_description = "" # default
         return self._long_description # return
@@ -96,12 +117,20 @@ class GenericModel(utils.LoggerObject,utils.ReprObject):
 
     @property
     def _default_long_description(self):
-        """ Default long_description if none was given
+        """ 
+        Default long_description if none was given
+
+        :type: :any:`str`
         """
         return "This is a generic model."
 
     @property
     def version(self):
+        """ 
+        The model version
+
+        :type: :any:`str`
+        """
         try:                   self._version # already defined?
         except AttributeError: self._version = "0.0.1" # default
         return self._version # return
@@ -113,12 +142,24 @@ class GenericModel(utils.LoggerObject,utils.ReprObject):
 
     @property
     def _default_version(self):
-        """ Default version if none was given
+        """ 
+        Default version if none was given
+
+        :type: :any:`str`
         """
         return "0.0.1"
 
     @property
     def authors(self):
+        """ 
+        The model author(s)
+
+        One of:
+            - :any:`str` : one author
+            - :any:`list` of :any:`str` : multiple authors
+            - :any:`dict` : multple authors per task, e.g.
+              ``{ "task1" : ["author1","author2"], "task2" : ...}``
+        """
         try:                   self._authors # already defined?
         except AttributeError: self._authors = "anonymous" # default
         return self._authors # return
@@ -133,12 +174,19 @@ class GenericModel(utils.LoggerObject,utils.ReprObject):
 
     @property
     def _default_authors(self):
-        """ Default authors if none was given
+        """ 
+        Default authors if none were given
+
+        :type: :any:`str`
         """
         return "anonymous"
 
     def __str__(self):
-        """ Stringification: summary
+        """ 
+        Stringification
+
+        Returns:
+            str : a summary
         """
         if isinstance(self.authors,dict):
             author_str = "\n".join("{task}: {name}".format(

@@ -44,6 +44,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     ] 
+napoleon_include_private_with_doc = True
 napoleon_include_special_with_doc = True
 
 # Add any paths that contain templates here, relative to this directory.
@@ -171,5 +172,7 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {'https://docs.python.org/3': None}
 intersphinx_mapping['sphinx'] = ('http://sphinx-doc.org/', None)
+intersphinx_mapping = {'numpy': ('http://docs.scipy.org/doc/numpy/', None)}
+intersphinx_mapping = {'scipy': ('http://docs.scipy.org/doc/scipy/reference/', None)}

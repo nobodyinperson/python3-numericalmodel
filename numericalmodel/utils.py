@@ -17,20 +17,25 @@ import numpy as np
 ### util functions ###
 ######################
 def is_numeric(x):
-    """ Check if a given value is numeric, i.e. whether numeric operations can
-    be done with it.  
+    """ 
+    Check if a given value is numeric, i.e. whether numeric operations can be
+    done with it.  
 
     Args:
         x (any): the input value
 
     Returns:
-        bool: True if the value is numeric, False otherwise
+        bool: ``True`` if the value is numeric, ``False`` otherwise
     """
     attrs = ['__add__', '__sub__', '__mul__', '__truediv__', '__pow__']
     return all(hasattr(x, attr) for attr in attrs)
 
 def utcnow():
-    """ Return the current utc unix timestamp
+    """ 
+    Get the current utc unix timestamp, i.e. the utc seconds since 01.01.1970.
+
+    Returns:
+        float : the current utc unix timestamp in seconds
     """
     ts = (datetime.datetime.utcnow() - datetime.datetime(1970,1,1)
         ).total_seconds()
@@ -40,14 +45,13 @@ def utcnow():
 ### util classes ###
 ####################
 class LoggerObject(object):
-    """ Simple base class that provides a 'logger' property
+    """ 
+    Simple base class that provides a 'logger' property
+
+    Args:
+        logger (logging.Logger): the logger to use
     """
     def __init__(self, logger = logging.getLogger(__name__)):
-        """ class constructor
-
-        Args:
-            logger (logging.Logger): the logger to use
-        """
         # set logger
         self.logger = logger
 
@@ -56,8 +60,9 @@ class LoggerObject(object):
     ##################
     @property
     def logger(self):
-        """ the logging.Logger used for logging.
-        Defaults to logging.getLogger(__name__).
+        """ 
+        the :any:`logging.Logger` used for logging. Defaults to
+        ``logging.getLogger(__name__)``.
         """
         try: # try to return the internal property
             return self._logger 
@@ -75,18 +80,21 @@ class LoggerObject(object):
 
 
 class ReprObject(object):
-    """ Simple base class that defines a __repr__ method based on its __init__
-        arguments and properties that are named equally.
+    """ 
+    Simple base class that defines a :any:`__repr__` method based on an object's 
+    ``__init__`` arguments and properties that are named equally. Subclasses of
+    :any:`ReprObject` should thus make sure to have properties that are named
+    equally as their ``__init__`` arguments.
     """
     @classmethod
     def _full_variable_path(cls,var):
         """ Get the full string of a variable
+
         Args:
-            var (variable): The variable to get the full string from
+            var (any): The variable to get the full string from
 
         Returns:
-            class_str (str): The full usable variable string including the
-                module 
+            str : The full usable variable string including the module 
         """
         if inspect.ismethod(var): # is a method
             string = "{module}.{cls}.{name}".format(
@@ -102,7 +110,12 @@ class ReprObject(object):
         return(string)
 
     def __repr__(self):
-        """ python representation of this object
+        """ 
+        Python representation of this object
+
+        Returns:
+            str : a Python representation of this object based on its
+            ``__init__`` arguments and corresponding properties.
         """
         indent = "    "
         # the current "full" classname
@@ -155,7 +168,8 @@ class ReprObject(object):
 
 
 class SetOfObjects(ReprObject, LoggerObject, collections.MutableMapping):
-    """ Base class for sets of objects
+    """ 
+    Base class for sets of objects
     """
     def __init__(self, elements = [], element_type = object):
         self.store = dict() # empty dict
@@ -169,14 +183,20 @@ class SetOfObjects(ReprObject, LoggerObject, collections.MutableMapping):
     ##################
     @property
     def elements(self):
-        """ return the list of values
+        """ 
+        return the list of values
+        
+        :getter:
+            get the list of values
+        :setter:
+            set the list of values. Make sure, every element in the list is an
+            instance of (a subclass of) :any:`element_type`.
+        :type: :any:`list`
         """
         return [self.store[x] for x in sorted(self.store)]
 
     @elements.setter
     def elements(self, newelements):
-        """ Set new values via a list
-        """
         assert isinstance(newelements, collections.Iterable), (
             "elements have to be list")
         # re-set the dict and fill it with new data
@@ -197,6 +217,9 @@ class SetOfObjects(ReprObject, LoggerObject, collections.MutableMapping):
 
     @property
     def element_type(self):
+        """ 
+        The base type the elements in the set should have
+        """
         try:                   self._element_type
         except AttributeError: self._element_type = object # default
         return self._element_type
@@ -216,12 +239,18 @@ class SetOfObjects(ReprObject, LoggerObject, collections.MutableMapping):
             obj (object): object
 
         Returns:
-            key (str): the unique key for this object. Defaults to repr(obj)
+            str : the unique key for this object. Defaults to ``repr(obj)``
         """
         return repr(obj) # by default, return the object's repr 
 
     def add_element(self, newelement):
-        tmp = self.elements.copy()
+        """ 
+        Add an element to the set
+
+        Args:
+            newelement (object of type :any:`element_type`): the new element
+        """
+        tmp = self.elements.copy() # TODO does this destroy references?
         tmp.append(newelement)
         self.elements = tmp
 
@@ -243,7 +272,11 @@ class SetOfObjects(ReprObject, LoggerObject, collections.MutableMapping):
         return len(self.store)
 
     def __str__(self):
-        """ Stringification: summary
+        """ 
+        Stringification
+
+        Returns:
+            str : a summary
         """
         string = "\n\n".join(str(x) for x in self.elements)
         if string:

@@ -14,7 +14,24 @@ from . import utils
 import numpy as np
 
 class NumericalModel(GenericModel):
-    """ Class for numerical models
+    """ 
+    Class for numerical models
+
+    Args:
+        name (str, optional): the model name
+        version (str, optional): the model version
+        description (str, optional): a short model description
+        long_description (str, optional): an extended model description
+        authors (str, list or dict, optional): model authors.
+            str: name of single author
+            list: list of author names
+            dict: dict of {'task': ['name1','name1']} pairs
+        initial_time (float): initial model time (UTC unix timestamp)
+        parameters (SetOfParameters, optional): model parameters
+        forcing (SetOfForcingValues, optional): model forcing
+        variables (SetOfStateVariables, optional): model state variables
+        numericalschemes (SetOfNumericalSchemes, optional): model schemes with
+            equation
     """
     def __init__(self,
             name = None,
@@ -28,26 +45,6 @@ class NumericalModel(GenericModel):
             variables = None,
             numericalschemes = None,
             ):
-        """ Class constructor
-
-        Args:
-            name (str): the model name
-            version (str): the model version
-            description (str): a short model description
-            long_description (str): an extended model description
-            authors (str, list or dict): model authors.
-                str: name of single author
-                list: list of author names
-                dict: dict of {'task': ['name1','name1']} pairs
-            initial_time (float): initial model time (UTC unix timestamp)
-            timestep (float): timestep
-            parameters (SetOfParameters): model parameters
-            forcing (SetOfForcingValues): model forcing
-            variables (SetOfStateVariables): model state variables
-            numericalschemes (SetOfNumericalSchemes): model schemes with
-                equation
-        """
-
         # GenericModel constructor
         GenericModel.__init__(self,
             name = name,
@@ -77,7 +74,10 @@ class NumericalModel(GenericModel):
     ##################
     @property
     def initial_time(self):
-        """ Default name if none was given
+        """ 
+        The initial model time
+        
+        :type: :any:`float`
         """
         try:                   self._initial_time
         except AttributeError: self._initial_time = self._default_initial_time
@@ -91,28 +91,47 @@ class NumericalModel(GenericModel):
 
     @property
     def _default_initial_time(self):
+        """ 
+        Default initial model time if none was given
+        
+        :type: :any:`float`
+        """
         return utils.utcnow()
 
     @property
     def _default_name(self):
-        """ Default name if none was given
+        """ 
+        Default name if none was given
+        
+        :type: :any:`str`
         """
         return "numerical model"
 
     @property
     def _default_description(self):
-        """ Default description if none was given
+        """ 
+        Default description if none was given
+        
+        :type: :any:`str`
         """
         return "a numerical model"
 
     @property
     def _default_long_description(self):
-        """ Default long_description if none was given
+        """ 
+        Default long_description if none was given
+        
+        :type: :any:`str`
         """
         return "This is a numerical model."
 
     @property
     def parameters(self):
+        """ 
+        The model parameters
+        
+        :type: :any:`SetOfParameters`
+        """
         try:                   self._parameters # already defined?
         except AttributeError: self._parameters = self._default_parameters
         return self._parameters # return
@@ -126,12 +145,20 @@ class NumericalModel(GenericModel):
 
     @property
     def _default_parameters(self):
-        """ Default parameters if none were given
+        """ 
+        Default parameters if none were given
+        
+        :type: :any:`SetOfParameters`
         """
         return interfaces.SetOfParameters()
 
     @property
     def forcing(self):
+        """ 
+        The model forcing
+
+        :type: :any:`SetOfForcingValues`
+        """
         try:                   self._forcing # already defined?
         except AttributeError: self._forcing = self._default_parameters
         return self._forcing # return
@@ -145,12 +172,20 @@ class NumericalModel(GenericModel):
 
     @property
     def _default_forcing(self):
-        """ Default forcing if none was given
+        """ 
+        Default forcing if none was given
+
+        :type: :any:`SetOfForcingValues`
         """
         return interfaces.SetOfForcingValues()
 
     @property
     def variables(self):
+        """ 
+        The model variables
+
+        :type: :any:`SetOfStateVariables`
+        """
         try:                   self._variables # already defined?
         except AttributeError: # default
             self._variables = interfaces.SetOfStateVariables() 
@@ -166,12 +201,20 @@ class NumericalModel(GenericModel):
 
     @property
     def _default_variables(self):
-        """ Default variables if none were given
+        """ 
+        Default variables if none were given
+
+        :type: :any:`SetOfStateVariables`
         """
         return interfaces.SetOfStateVariables()
 
     @property
     def numericalschemes(self):
+        """ 
+        The model numerical schemes
+
+        :type: :any:`str`
+        """
         try:                   self._numericalschemes # already defined?
         except AttributeError: self._numericalschemes = self._default_numericalschemes
         return self._numericalschemes # return
@@ -185,28 +228,40 @@ class NumericalModel(GenericModel):
 
     @property
     def _default_numericalschemes(self):
-        """ Default numericalschemes if none were given
+        """ 
+        Default numerical schemes if none were given
+        
+        :type: :any:`SetOfNumericalSchemes`
         """
         return numericalschemes.SetOfNumericalSchemes()
 
 
     @property
     def model_time(self):
+        """
+        The current model time
+
+        :type: :any:`float`
+        """
         try:                   self._model_time # already defined?
         except AttributeError: self._model_time = self.initial_time # default
-        return self._model_time # return
+        return float(self._model_time) # return
 
     @model_time.setter
     def model_time(self, newtime):
         assert utils.is_numeric(newtime), "model_time has to be numeric"
         assert np.array(newtime).size == 1, "model_time has to be one value"
-        self._model_time = newtime
+        self._model_time = float(newtime)
 
     ###############
     ### Methods ###
     ###############
     def get_model_time(self):
-        """ The current model time
+        """ 
+        The current model time
+
+        Returns:
+            float: current model time
         """
         return self.model_time
 
@@ -224,7 +279,11 @@ class NumericalModel(GenericModel):
         self.logger.info("end of integration")
 
     def __str__(self):
-        """ Stringification: summary
+        """ 
+        Stringification
+
+        Returns:
+            str : a summary
         """
         # GenericModel stringificator
         gm_string = GenericModel.__str__(self)

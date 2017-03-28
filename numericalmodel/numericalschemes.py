@@ -12,25 +12,24 @@ import numpy as np
 
 
 class NumericalScheme(utils.ReprObject,utils.LoggerObject):
-    """ Base class for numerical schemes
+    """ 
+    Base class for numerical schemes
+
+    Args:
+        description (str): short equation description
+        long_description (str): long equation description
+        equation (DerivativeEquation): the equation
+        fallback_max_timestep (single numeric): the fallback maximum
+            timestep if no timestep can be estimated from the equation
+        ignore_linear (bool): ignore the linear part of the equation?
+        ignore_independent (bool): ignore the variable-independent part of
+            the equation?  
+        ignore_nonlinear (bool): ignore the nonlinear part of the equation?
     """
     def __init__(self, description = None, long_description = None,
         equation = None, fallback_max_timestep = None, 
         ignore_linear = None, ignore_independent = None, 
         ignore_nonlinear = None):
-        """ Class constructor
-
-        Args:
-            description (str): short equation description
-            long_description (str): long equation description
-            equation (DerivativeEquation): the equation
-            fallback_max_timestep (single numeric): the fallback maximum
-                timestep if no timestep can be estimated from the equation
-            ignore_linear (bool): ignore the linear part of the equation?
-            ignore_independent (bool): ignore the variable-independent part of
-                the equation?  
-            ignore_nonlinear (bool): ignore the nonlinear part of the equation?
-        """
         if equation is None: self.equation = self._default_equation
         else:                self.equation = equation
         if fallback_max_timestep is None: 
@@ -56,6 +55,11 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
     ##################
     @property
     def description(self):
+        """ 
+        The numerical scheme description
+
+        :type: :any:`str`
+        """
         try:                   self._description
         except AttributeError: self._description = self._default_description
         return self._description
@@ -67,10 +71,20 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         
     @property
     def _default_description(self):
+        """ 
+        The default description if none was given
+
+        :type: :any:`str`
+        """
         return "a numerical scheme"
 
     @property
     def long_description(self):
+        """ 
+        The longer numerical scheme description
+
+        :type: :any:`str`
+        """
         try:                   self._long_description
         except AttributeError: 
             self._long_description = self._default_long_description
@@ -84,10 +98,20 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         
     @property
     def _default_long_description(self):
+        """ 
+        The default longer numerical scheme description if none was given
+
+        :type: :any:`str`
+        """
         return "This is a numerical scheme to solve a derivative equation."
 
     @property
     def fallback_max_timestep(self):
+        """ 
+        The numerical scheme's fallback maximum timestep 
+
+        :type: :any:`float`
+        """
         try:                   self._fallback_max_timestep
         except AttributeError: 
             self._fallback_max_timestep = self._default_fallback_max_timestep
@@ -103,10 +127,20 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
 
     @property
     def _default_fallback_max_timestep(self):
+        """ 
+        The numerical scheme's default fallback maximum timestep 
+
+        :type: :any:`float`
+        """
         return 1
 
     @property
     def equation(self):
+        """ 
+        The equation the numerical scheme's should solve
+
+        :type: :any:`DerivativeEquation`
+        """
         try:                   self._equation
         except AttributeError: self._equation = self._default_equation
         return self._equation
@@ -119,10 +153,21 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         
     @property
     def _default_equation(self):
+        """ 
+        The default equation the numerical scheme's should solve if none was
+        given
+
+        :type: :any:`DerivativeEquation`
+        """
         return equations.DerivativeEquation()
 
     @property
     def ignore_linear(self):
+        """ 
+        Should this numerical scheme ignore the equation's linear factor?
+
+        :type: :any:`bool`
+        """
         try:                   self._ignore_linear
         except AttributeError: self._ignore_linear = self._default_ignore_linear
         return self._ignore_linear
@@ -133,10 +178,21 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         
     @property
     def _default_ignore_linear(self):
+        """ 
+        Default behaviour for :any:`ignore_linear`
+
+        :type: :any:`bool`
+        """
         return False
 
     @property
     def ignore_independent(self):
+        """ 
+        Should this numerical scheme ignore the equation's variable-independent
+        addend?
+
+        :type: :any:`bool`
+        """
         try:                   self._ignore_independent
         except AttributeError: 
             self._ignore_independent = self._default_ignore_independent
@@ -148,10 +204,20 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         
     @property
     def _default_ignore_independent(self):
+        """ 
+        Default behaviour for :any:`ignore_independent`
+
+        :type: :any:`bool`
+        """
         return False
 
     @property
     def ignore_nonlinear(self):
+        """ 
+        Should this numerical scheme ignore the equation's nonlinear addend?
+
+        :type: :any:`bool`
+        """
         try:                   self._ignore_nonlinear
         except AttributeError: 
             self._ignore_nonlinear = self._default_ignore_nonlinear
@@ -163,6 +229,11 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         
     @property
     def _default_ignore_nonlinear(self):
+        """ 
+        Default behaviour for :any:`ignore_nonlinear`
+
+        :type: :any:`bool`
+        """
         return False
 
     ###############
@@ -170,8 +241,9 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
     ###############
     @property
     def max_timestep(self, time = None, variablevalue = None):
-        """ Return a maximum timestep for the current state. First tries the
-            max_timestep_estimate, then the fallback.
+        """ 
+        Return a maximum timestep for the current state. First tries the
+        :any:`max_timestep_estimate`, then the :any:`fallback_max_timestep`.
 
         Args:
             times (single numeric value, optional): the time to calculate the 
@@ -180,8 +252,7 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
                 Defaults to the value of self.variable at the given time.
 
         Returns:
-            timestep (single numeric): an estimate of the current
-            maximum timestep
+            float : an estimate of the current maximum timestep
         """
         try:
             try: # try an estimate
@@ -198,8 +269,9 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
 
 
     def max_timestep_estimate(self, time = None, variablevalue = None):
-        """ Based on this numerical scheme and the equation parts, estimate
-        a maximum timestep. Subclasses may override this.
+        """ 
+        Based on this numerical scheme and the equation parts, estimate a
+        maximum timestep. Subclasses may override this.
 
         Args:
             times (single numeric value, optional): the time to calculate the 
@@ -208,12 +280,11 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
                 Defaults to the value of self.variable at the given time.
 
         Returns:
-            timestep (single numeric or bogus): an estimate of the current
+            single numeric or bogus: an estimate of the current
             maximum timestep. Definitely check the result for integrity.
 
         Raises:
-            Any error if something goes wrong. Definitely wrap a call to this
-            method into a try:... except:... block.
+            Exception : any exception if something goes wrong
         """
         # equation + state -> timestep estimate functions
         def smaller_than_time_constant(time = None, variablevalue = None):
@@ -240,17 +311,18 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         return timestep # return
 
     def needed_timesteps(self, timestep):
-        """ Given a timestep to integrate from now on, what other timesteps of
-        the dependencies are needed?
+        """ 
+        Given a timestep to integrate from now on, what other timesteps of the
+        dependencies are needed?
 
         Args:
             timestep (single numeric value): the timestep to calculate 
 
         Returns:
-            np.array of needed timesteps
+            numpy.array : the timesteps
 
         Note:
-            timestep 0 means current time
+            timestep 0 means the current time
         """
         assert utils.is_numeric(timestep), "timestep needs to be numeric"
         ts = np.asarray(timestep)
@@ -258,17 +330,32 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         return self._needed_timesteps_for_integration_step(timestep = ts)
 
     def _needed_timesteps_for_integration_step(self, timestep = None):
+        """ 
+        Given a timestep to integrate from now on, what other timesteps of the
+        dependencies are needed?
+
+        Args:
+            timestep (single numeric value): the timestep to calculate 
+
+        Returns:
+            numpy.array : the timesteps
+
+        Note:
+            timestep 0 means the current time
+        """
         raise NotImplementedError("Subclasses should override this")
 
     def linear_factor(self, time = None):
-        """ Calculate the equation's linear factor in front of the variable.
+        """ 
+        Calculate the equation's linear factor in front of the variable.
 
         Args:
             times (single numeric value, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
 
         Returns:
-            res (numeric): the linear factor or 0 if ignore_linear is True.
+            numeric : the linear factor or 0 if :any:`ignore_linear` is
+            ``True``.  
         """
         if self.ignore_linear:
             return 0
@@ -276,7 +363,8 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
             return self.equation.linear_factor( time = time )
 
     def independent_addend(self, time = None):
-        """ Calculate the equation's addend part that is independent of the
+        """ 
+        Calculate the equation's addend part that is independent of the
         variable.
         
         Args:
@@ -284,8 +372,8 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
                 derivative. Defaults to the variable's current (last) time.
 
         Returns:
-            res (numeric): the independent addend or 0 if ignore_independent 
-            is True.
+            numeric : the independent addend or 0 if :any:`ignore_independent`
+            is ``True``.  
         """
         if self.ignore_independent:
             return 0
@@ -293,8 +381,9 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
             return self.equation.independent_addend( time = time )
 
     def nonlinear_addend(self, time = None, variablevalue = None):
-        """ Calculate the derivative's addend part that is nonlinearly dependent
-        of the variable.
+        """ 
+        Calculate the derivative's addend part that is nonlinearly dependent of
+        the variable.
 
         Args:
             times (single numeric value, optional): the time to calculate the 
@@ -313,13 +402,13 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
                 time = time, variablevalue = variablevalue) 
 
     def integrate(self, time = None, until = None):
-        """ Integrate until a certain time, respecting the max_timestep.
+        """ Integrate until a certain time, respecting the :any:`max_timestep`.
 
         Args:
-            time (single numeric): The time to begin. Default to current
-                variable time.
-            until (single numeric): The time to integrate until. Defaults to one
-                max_timestep further.
+            time (single numeric, optional): The time to begin. Defaults to
+                current variable :any:`time`.
+            until (single numeric, optional): The time to integrate until.
+                Defaults to one :any:`max_timestep` further.
         """
         assert utils.is_numeric(until), "until needs to be numeric"
         if time is None: time = self.equation.variable.time
@@ -346,13 +435,14 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
             
 
     def integrate_step(self, time = None, timestep = None):
-        """ Integrate "timestep" forward and set results in-place
+        """ 
+        Integrate "timestep" forward and set results in-place
 
         Args:
-            time (single numeric): The time to calculate the step FROM. Defaults
-                to the current variable time.
-            timestep (single numeric): The timestep to calculate the step.
-                Defaults to max_timestep.
+            time (single numeric, optional): The time to calculate the step
+                FROM. Defaults to the current variable time.
+            timestep (single numeric, optional): The timestep to calculate the
+                step. Defaults to :any:`max_timestep`.
         """
         var = self.equation.variable
         if timestep is None: timestep = self.max_timestep
@@ -370,7 +460,8 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         var.next_time = None # unset next_time
 
     def step(self, time, timestep, tendency=True):
-        """ Integrate one "timtstep" from "time" forward and return value
+        """ 
+        Integrate one "timestep" from "time" forward and return value
         
         Args:
             time (single numeric): The time to calculate the step FROM
@@ -379,12 +470,16 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
                 of the variable after the timestep?
 
         Returns:
-            ndarray : The resulting variable value or tendency
+            numpy.ndarray : The resulting variable value or tendency
         """
         raise NotImplementedError("Subclasses should override this")
 
     def __str__(self):
-        """ Stringification: summary
+        """ 
+        Stringification
+
+        Returns:
+            str : a summary
         """
         string = (
         " \"{description}\" \n"
@@ -401,7 +496,8 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
 
 
 class EulerExplicit(NumericalScheme):
-    """ Euler-explicit numerical scheme
+    """ 
+    Euler-explicit numerical scheme
     """
     @property
     def _default_description(self):
@@ -435,7 +531,8 @@ class EulerExplicit(NumericalScheme):
 
 
 class EulerImplicit(NumericalScheme):
-    """ Euler-implicit numerical scheme
+    """ 
+    Euler-implicit numerical scheme
     """
     @property
     def _default_description(self):
@@ -446,6 +543,23 @@ class EulerImplicit(NumericalScheme):
         return "This is a Euler-implicit scheme to solve a derivative equation."
 
     def step(self, time = None, timestep = None, tendency = True):
+        """ 
+        Integrate one "timestep" from "time" forward with the Euler-implicit
+        scheme and return the resulting variable value.
+        
+        Args:
+            time (single numeric): The time to calculate the step FROM
+            timestep (single numeric): The timestep to calculate the step
+            tendency (bool, optional): return the tendency or the actual value
+                of the variable after the timestep?
+
+        Returns:
+            numpy.ndarray : The resulting variable value or tendency
+
+        Raises:
+            AssertionError : when the equation's nonlinear part is not zero and
+                :any:`ignore_nonlinear` is not set to ``True``
+        """
         if timestep is None: timestep = self.max_timestep
         v = self.equation.variable
         # get equation parts
@@ -472,7 +586,8 @@ class EulerImplicit(NumericalScheme):
 
 
 class LeapFrog(NumericalScheme):
-    """ Leap-Frog numerical scheme
+    """ 
+    Leap-Frog numerical scheme
     """
     @property
     def _default_description(self):
@@ -508,7 +623,8 @@ class LeapFrog(NumericalScheme):
 
 
 class RungeKutta4(NumericalScheme):
-    """ Runte-Kutta-4 numerical scheme
+    """ 
+    Runte-Kutta-4 numerical scheme
     """
     @property
     def _default_description(self):
@@ -569,33 +685,35 @@ class RungeKutta4(NumericalScheme):
 ### Sets of NumericalScheme ###
 ###############################
 class SetOfNumericalSchemes(utils.SetOfObjects):
-    """ Base class for sets of NumericalSchemes
+    """ 
+    Base class for sets of NumericalSchemes
+    
+    Args:
+        elements (list of NumericalScheme instance): the numerical schemes
+        fallback_plan (list): 
+            the fallback plan if automatic planning fails.
+            Depending on the combination of numerical scheme and equations,
+            a certain order or solving the equations is crucial. For some
+            cases, the order can be determined automatically, but if that
+            fails, one has to provide this information by hand.
+            Has to be a list of ``[varname, [timestep1,timestep2,...]]`` pairs.
+
+            varname: 
+                the name of the equation variable. Obviously there has to be at
+                least one entry in the list for each equation.
+
+            timestepN: 
+                the normed timesteps (betw. 0 and 1) to calculate.  Normed
+                means, that if it is requested to integrate the set of numerical
+                equations by an overall timestep, what percentages of this
+                timestep have to be available of this variable. E.g. an overall
+                timestep of 10 is requested. Another equation needs this
+                variable at the timesteps 2 and 8. Then the timesteps would be
+                [0.2,0.8].  Obviously, the equations that looks farest into the
+                future (e.g.  Runge-Kutta or Euler-Implicit) has to be last in
+                this fallback_plan list.
     """
     def __init__(self, elements = [], fallback_plan = None):
-        """ class constructor
-
-        Args:
-            elements (list of NumericalScheme instance): the numerical schemes
-            fallback_plan (list): the fallback plan if automatic planning fails.
-                Depending on the combination of numerical scheme and equations,
-                a certain order or solving the equations is crucial. For some
-                cases, the order can be determined automatically, but if that
-                fails, one has to provide this information by hand.
-                Has to be a list of [varname, [timestep1,timestep2,...]] pairs.
-                varname: the name of the equation variable. Obviously there has
-                         to be at least one entry in the list for each equation.
-                timestepN: the normed timesteps (betw. 0 and 1) to calculate.
-                           Normed means, that if it is requested to integrate
-                           the set of numerical equations by an overall 
-                           timestep, what percentages of this timestep have to 
-                           be available of this variable. E.g. an overall
-                           timestep of 10 is requested. Another equation needs
-                           this variable at the timesteps 2 and 8. Then the
-                           timesteps would be [0.2,0.8].
-                Obviously, the equations that looks farest into the future (e.g.
-                Runge-Kutta or Euler-Implicit) has to be last in this
-                fallback_plan list.
-        """
         utils.SetOfObjects.__init__(self, # call SetOfObjects constructor
             elements = elements, 
             element_type = NumericalScheme, # only NumericalScheme is allowed
@@ -611,7 +729,12 @@ class SetOfNumericalSchemes(utils.SetOfObjects):
     ##################
     @property
     def plan(self):
-        """ The plan for this set of numerical schemes
+        """ 
+        The unified plan for this set of numerical schemes. First try to
+        determine the plan automatically, if that fails, use the
+        :any:`fallback_plan`.
+        
+        :type: :any:`list`
         """
         try: # try automatic planning
             plan = self._automatic_plan
@@ -621,6 +744,11 @@ class SetOfNumericalSchemes(utils.SetOfObjects):
 
     @property
     def fallback_plan(self):
+        """ 
+        The fallback plan if automatic plan determination does not work
+
+        :type: :any:`list`
+        """
         try: self._fallback_plan
         except AttributeError: self._fallback_plan = self._default_fallback_plan
         return self._fallback_plan
@@ -641,14 +769,27 @@ class SetOfNumericalSchemes(utils.SetOfObjects):
 
     @property
     def _default_fallback_plan(self):
+        """ 
+        The default fallback plan if none was given
+        """
         # stupidest plan: solve equations in alphabetical order
         plan = [ [var,[1]] for var in sorted(self.keys()) ]
         return plan
 
     @property
     def _automatic_plan(self):  
-        """ Try to determine the scheme plan based on the equations and the
-            numerical schemes
+        """ 
+        Try to determine the scheme plan based on the equations and the
+        numerical schemes.
+
+        :type: :any:`list`
+
+        .. todo::
+            Implementing this is definitely possible. All needed information is
+            accessible:
+
+                - the equation's dependencies
+                - the numerical scheme's needed timesteps
         """
         # TODO: This definitely has to be implemented for convenience
         raise NotImplementedError("Automatic planning is definitely possible, " 

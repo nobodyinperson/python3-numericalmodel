@@ -8,6 +8,7 @@
    :caption: Contents:
 
    whatsthis
+   install
    basics
    model-setup
    examples
