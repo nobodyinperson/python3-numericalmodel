@@ -22,6 +22,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
             chronological order
         times (1d np.array): the corresponding times to values
         unit (str): physical unit of value
+        bounds (list): lower and upper value bounds
         interpolation (str): interpolation kind. See
             scipy.interpolate.interp1d for documentation. Defaults to 
             "zero".
@@ -36,6 +37,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         interpolation = None,
         values = None,
         times = None,
+        bounds = None,
         ):
         # set properties
         if time_function is None:  
@@ -47,6 +49,8 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         else:             self.unit = unit
         if id is None:    self.id = self._default_id
         else:             self.id = id
+        if bounds is None: self.bounds = self._default_bounds
+        else:              self.bounds = bounds
         if values is None:self.values = self._default_values
         else:             self.values = values
         if times is None: self.times = self._default_times
@@ -166,6 +170,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
             :any:`times`, the corresponding value in :any:`values` is
             overwritten.  Otherwise, the new time and value are appended to
             :any:`times` and :any:`values`.
+            The value is also checked to lie within the :any:`bounds`.
         :type: numeric
         """
         return self() # call us
@@ -175,6 +180,12 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         assert utils.is_numeric(newvalue), "value has to be numeric"
         val = np.asarray(newvalue) # convert to numpy array
         assert val.size == 1, "value has to be of size one"
+        # check if values are inside bounds
+        lower, upper = self.bounds
+        assert np.all(newvalue >= lower), \
+            ("new value is smaller than lower bound {}").format(lower)
+        assert np.all(newvalue <= upper), \
+            ("new value is greater than upper bound {}").format(upper)
         # append to log
         t = self.next_time # the next time
         ind = self.times == t # indices where this next time is already present
@@ -193,6 +204,8 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         """ 
         All values this InterfaceValue has ever had in chronological order
 
+        :getter: Return the current values
+        :setter: Check if all new values lie within the :any:`bounds`
         :type: :any:`numpy.ndarray`
         """
         try:                   self._values # already defined?
@@ -204,6 +217,12 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         assert isinstance(newvalues,np.ndarray), "values have to be np.array"
         assert newvalues.size == np.prod(newvalues.shape), \
             "values have to be one-dimensional" 
+        # check if values are inside bounds
+        lower, upper = self.bounds
+        assert np.all(newvalues >= lower), \
+            ("new value is smaller than lower bound {}").format(lower)
+        assert np.all(newvalues <= upper), \
+            ("new value is greater than upper bound {}").format(upper)
         self._values = newvalues
         # reset intepolator
         self.interpolator = None
@@ -288,6 +307,45 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         :type: :any:`numpy.ndarray`
         """
         return np.array([]) # empty array
+
+    @property
+    def bounds(self):
+        """ 
+        The :any:`values`' bounds. Defaults to an infinite interval.
+
+        :getter: Return the current bounds
+        :setter: If the bounds change, check if all :any:`values` lie within the
+            new bounds.
+        :type: :any:`list`, ``[lower, upper]``
+        """
+        try:                   self._bounds # already defined?
+        except AttributeError: self._bounds = self._default_bounds # default
+        return self._bounds # return
+
+    @bounds.setter
+    def bounds(self,newbounds):
+        assert isinstance(newbounds,list), "bounds have to be list"
+        assert len(newbounds) == 2, "bounds must have two elements" 
+        assert all(utils.is_numeric(x) for x in newbounds), \
+            "bounds have to be list like [lower, upper]"
+        assert newbounds[1] > newbounds[0], \
+            "new lower bound has to be smaller than upper bound"
+        if self.bounds != newbounds: # bounds changed
+            # check the values for the new bounds
+            assert np.all( self.values >= newbounds[0] ), \
+                "there are values greater than the new upper bound"
+            assert np.all( self.values <= newbounds[1] ), \
+                "there are values greater than the new upper bound"
+        self._bounds = newbounds # set internal attribute
+
+    @property
+    def _default_bounds(self):
+        """ 
+        The default bounds to use when none were given.
+
+        :type: :any:`list`
+        """
+        return [-np.Inf, np.Inf] # unlimited
 
     @property
     def interpolation(self):
@@ -394,10 +452,11 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         " \"{name}\" \n"
         "--- {id} [{unit}] ---\n"
         "currently: {value} [{unit}]\n"
+	"bounds: {bounds}\n"
         "interpolation: {interp} \n"
         "{nr} total recorded values"
         ).format(id=self.id,unit=self.unit,interp=self.interpolation,
-        name=self.name,value=value,nr=self.values.size)
+        name=self.name,value=value,nr=self.values.size,bounds=self.bounds)
         return string
         
 ####################################

@@ -53,16 +53,16 @@ Providing a name and a unit documents your model on the fly.
    ``print(repr(temperature))`` or just ``temperature<ENTER>`` in an
    interactive python session to see a representation of this object::
 
-       numericalmodel.interfaces.StateVariable(
-           time_function = numericalmodel.utils.utcnow,
-           values = array([], dtype=float64),
-           name = 'temperature',
-           times = array([], dtype=float64),
-           unit = 'K',
-           id = 'T',
-           interpolation = 'zero'
-           )
-
+		numericalmodel.interfaces.StateVariable(
+			unit = 'K',
+			bounds = [-inf, inf],
+			name = 'temperature',
+			times = array([], dtype=float64),
+			time_function = numericalmodel.utils.utcnow,
+			id = 'T',
+			values = array([], dtype=float64),
+			interpolation = 'zero'
+			)
     
 
 The others - :math:`a` and :math:`F` - are created similarly::
@@ -76,66 +76,6 @@ Now we add them to the model::
     model.parameters = SetOfParameters(     [ parameter ]   )
     model.forcing    = SetOfForcingValues(  [ forcing ]     )
 
-.. tip:: A lot of objects in :mod:`numericalmodel` also have a sensible
-	``__str__`` method, which enables them to print a summary of themselves. For
-	example, if we do a ``print(model)``::
-
-		###
-		### "numerical model"
-		### - a numerical model -
-		###  version 0.0.1
-		###
-
-		by:
-		anonymous
-
-		a numerical model
-		--------------------------------------------------------------
-		This is a numerical model.
-
-
-
-		##################
-		### Model data ###
-		##################
-
-		initial time: 1490648927.012074
-
-		#################
-		### Variables ###
-		#################
-
-		 "temperature"
-		--- T [K] ---
-		currently: ? [K]
-		interpolation: zero
-		0 total recorded values
-
-		##################
-		### Parameters ###
-		##################
-
-		 "linear parameter"
-		--- a [1/s] ---
-		currently: ? [1/s]
-		interpolation: linear
-		0 total recorded values
-
-		###############
-		### Forcing ###
-		###############
-
-		 "forcing parameter"
-		--- F [K/s] ---
-		currently: ? [K/s]
-		interpolation: linear
-		0 total recorded values
-
-		###############
-		### Schemes ###
-		###############
-
-		none
 
 .. note:: When an :any:`InterfaceValue`'s :any:`value` is set, a corresponding
    time is determined to record it. The default is to use the return value of
@@ -160,6 +100,71 @@ forcing, we may set initial values::
             model.parameters["a"].value = 0.1
             model.forcing["F"].value    = 28
     
+.. tip:: A lot of objects in :mod:`numericalmodel` also have a sensible
+	``__str__`` method, which enables them to print a summary of themselves. For
+	example, if we do a ``print(model)``::
+
+		###
+		### "numerical model"
+		### - a numerical model -
+		###  version 0.0.1
+		###
+
+		by:
+		anonymous
+
+		a numerical model
+		--------------------------------------------------------------
+		This is a numerical model.
+
+
+
+		##################
+		### Model data ###
+		##################
+
+		initial time: 0
+
+		#################
+		### Variables ###
+		#################
+
+		 "temperature"
+		--- T [K] ---
+		currently: 293.15 [K]
+		bounds: [-inf, inf]
+		interpolation: zero
+		1 total recorded values
+
+		##################
+		### Parameters ###
+		##################
+
+		 "linear parameter"
+		--- a [1/s] ---
+		currently: 0.1 [1/s]
+		bounds: [-inf, inf]
+		interpolation: linear
+		1 total recorded values
+
+		###############
+		### Forcing ###
+		###############
+
+		 "forcing parameter"
+		--- F [K/s] ---
+		currently: 28.0 [K/s]
+		bounds: [-inf, inf]
+		interpolation: linear
+		1 total recorded values
+
+		###############
+		### Schemes ###
+		###############
+
+		none
+
+
 
 Defining equations
 ------------------
