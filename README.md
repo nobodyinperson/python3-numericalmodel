@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/nobodyinperson/python3-numericalmodel.svg?branch=master)](https://travis-ci.org/nobodyinperson/python3-numericalmodel)
 [![Documentation Status](https://readthedocs.org/projects/python3-numericalmodel/badge/?version=latest)](http://python3-numericalmodel.readthedocs.io/en/latest/?badge=latest)
+[![PyPI version](https://badge.fury.io/py/numericalmodel.svg)](https://badge.fury.io/py/numericalmodel)  
 
 Abstract classes to set up and run a numerical model in Python
 
