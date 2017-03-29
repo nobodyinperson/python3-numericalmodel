@@ -19,7 +19,7 @@ class Equation(utils.LoggerObject,utils.ReprObject):
     Args:
         description (str, optional): short equation description
         long_description (str, optional): long equation description
-        variable (InterfaceVariable, optional): the variable obtained by solving
+        variable (StateVariable, optional): the variable obtained by solving
             the equation
         input (SetOfInterfaceValues, optional): set of values needed by the
             equation 

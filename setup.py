@@ -6,6 +6,10 @@ from setuptools import setup, find_packages
 
 from numericalmodel import __version__
 
+def read_file(filename):
+    with open(filename) as f:
+        return f.read()
+
 # run setup
 # take metadata from setup.cfg
 setup( 
@@ -13,6 +17,7 @@ setup(
     url = 'https://github.com/nobodyinperson/python3-numericalmodel',
     download_url = ("https://github.com/nobodyinperson/" 
         "python3-numericalmodel/archive/v{}.tar.gz").format(__version__),
+    long_description = read_file("README.rst"),
     classifiers = [
             'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
             'Programming Language :: Python :: 3.5',
