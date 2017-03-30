@@ -16,10 +16,15 @@ class GenericModel(utils.LoggerObject,utils.ReprObject):
         version (str, optional): the model version
         description (str): a short model description
         long_description (str): an extended model description
-        authors (str, list or dict, optional): model authors.
-            str: name of single author
-            list: list of author names
-            dict: dict of {'task': ['name1','name1']} pairs
+        authors (:any:`str`, :any:`list` or :any:`dict`, optional): 
+            the model author(s). One of
+
+            :any:`str`: 
+                name of single author
+            :any:`list` of :any:`str`: 
+                :any:`list` of author names
+            :any:`dict`: 
+                :any:`dict` of ``{'task': ['name1','name1']}`` pairs
     """
     def __init__(self,
             name = None,
@@ -154,11 +159,12 @@ class GenericModel(utils.LoggerObject,utils.ReprObject):
         """ 
         The model author(s)
 
-        One of:
-            - :any:`str` : one author
-            - :any:`list` of :any:`str` : multiple authors
-            - :any:`dict` : multple authors per task, e.g.
-              ``{ "task1" : ["author1","author2"], "task2" : ...}``
+        :any:`str`: 
+            name of single author
+        :any:`list` of :any:`str`: 
+            :any:`list` of author names
+        :any:`dict`: 
+            :any:`dict` of ``{'task': ['name1','name1']}`` pairs
         """
         try:                   self._authors # already defined?
         except AttributeError: self._authors = "anonymous" # default

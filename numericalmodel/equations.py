@@ -192,11 +192,12 @@ class DerivativeEquation(Equation):
         Calculate the derivative's linear factor in front of the variable
 
         Args:
-            time (single numeric value, optional): the time to calculate the 
+            time (single numeric, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
 
         Returns:
-            numpy.array : the equation's linear factor at the corresponding time
+            numpy.ndarray : the equation's linear factor at the corresponding
+            time 
         """
         raise NotImplementedError("subclasses must override this method")
 
@@ -206,11 +207,11 @@ class DerivativeEquation(Equation):
         variable.
 
         Args:
-            times (single numeric value, optional): the time to calculate the 
+            time (single numeric, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
 
         Returns:
-            numpy.array : the equation's variable-independent addend at the
+            numpy.ndarray : the equation's variable-independent addend at the
             corresponding time
         """
         raise NotImplementedError("subclasses must override this method")
@@ -221,13 +222,13 @@ class DerivativeEquation(Equation):
         of the variable.
 
         Args:
-            times (single numeric value, optional): the time to calculate the 
+            time (single numeric, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
-            variablevalue (np.array, optional): the variable vaulue to use. 
+            variablevalue (numpy.ndarray, optional): the variable vaulue to use. 
                 Defaults to the value of self.variable at the given time.
 
         Returns:
-            numpy.array : the equation's nonlinear addend at the corresponding
+            numpy.ndarray : the equation's nonlinear addend at the corresponding
             time
         """
         raise NotImplementedError("subclasses must override this method")
@@ -236,9 +237,9 @@ class DerivativeEquation(Equation):
         """ Calculate the derivative (right-hand-side) of the equation
 
         Args:
-            times (single numeric value, optional): the time to calculate the 
+            time (single numeric, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
-            variablevalue (np.array, optional): the variable vaulue to use.  
+            variablevalue (numpy.ndarray, optional): the variable vaulue to use.  
                 Defaults to the value of self.variable at the given time.
 
         Returns:
@@ -281,8 +282,8 @@ class SetOfEquations(utils.SetOfObjects):
     Base class for sets of Equations
 
     Args:
-        elements (list of Equations, optional): the list of :any:`Equation`
-            instances 
+        elements (:any:`list` of :any:`Equation`, optional): the list of
+            :any:`Equation` instances 
     """
     def __init__(self, elements = []):
         utils.SetOfObjects.__init__(self, # call SetOfObjects constructor

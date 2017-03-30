@@ -18,9 +18,9 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
     Args:
         name (str): value name
         id (str): unique id
-        values (1d np.array): all values this InterfaceValue had in 
+        values (1d :any:`numpy.ndarray`): all values this InterfaceValue had in 
             chronological order
-        times (1d np.array): the corresponding times to values
+        times (1d :any:`numpy.ndarray`): the corresponding times to values
         unit (str): physical unit of value
         bounds (list): lower and upper value bounds
         interpolation (str): interpolation kind. See
@@ -214,7 +214,8 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
 
     @values.setter
     def values(self,newvalues):
-        assert isinstance(newvalues,np.ndarray), "values have to be np.array"
+        assert isinstance(newvalues,np.ndarray), \
+            "values have to be numpy.ndarray"
         assert newvalues.size == np.prod(newvalues.shape), \
             "values have to be one-dimensional" 
         # check if values are inside bounds
@@ -290,7 +291,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
 
     @times.setter
     def times(self,newtimes):
-        assert isinstance(newtimes,np.ndarray), "times have to be np.array"
+        assert isinstance(newtimes,np.ndarray), "times have to be numpy.ndarray"
         assert newtimes.size == np.prod(newtimes.shape), \
             "times have to be one-dimensional" 
         assert np.all(np.diff(newtimes)>0), "times must be strictly increasing"
@@ -519,7 +520,8 @@ class SetOfInterfaceValues(utils.SetOfObjects):
     Base class for sets of interface values
 
     Args:
-        values (list of value_type-instances, optional): the list of values
+        values (:any:`list` of :any:`InterfaceValue`, optional): the list of
+            values 
     """
     def __init__(self, elements = []):
         utils.SetOfObjects.__init__(self, # call SetOfObjects constructor

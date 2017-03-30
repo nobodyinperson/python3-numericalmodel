@@ -20,12 +20,17 @@ class NumericalModel(GenericModel):
     Args:
         name (str, optional): the model name
         version (str, optional): the model version
-        description (str, optional): a short model description
-        long_description (str, optional): an extended model description
-        authors (str, list or dict, optional): model authors.
-            str: name of single author
-            list: list of author names
-            dict: dict of {'task': ['name1','name1']} pairs
+        description (str): a short model description
+        long_description (str): an extended model description
+        authors (:any:`str`, :any:`list` or :any:`dict`, optional): 
+            the model author(s). One of
+
+            :any:`str`: 
+                name of single author
+            :any:`list` of :any:`str`: 
+                :any:`list` of author names
+            :any:`dict`: 
+                :any:`dict` of ``{'task': ['name1','name1']}`` pairs
         initial_time (float): initial model time (UTC unix timestamp)
         parameters (SetOfParameters, optional): model parameters
         forcing (SetOfForcingValues, optional): model forcing

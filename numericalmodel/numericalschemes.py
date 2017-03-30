@@ -246,9 +246,9 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         :any:`max_timestep_estimate`, then the :any:`fallback_max_timestep`.
 
         Args:
-            times (single numeric value, optional): the time to calculate the 
+            time (single numeric, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
-            variablevalue (np.array, optional): the variable vaulue to use. 
+            variablevalue (numpy.ndarray, optional): the variable vaulue to use. 
                 Defaults to the value of self.variable at the given time.
 
         Returns:
@@ -274,9 +274,9 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         maximum timestep. Subclasses may override this.
 
         Args:
-            times (single numeric value, optional): the time to calculate the 
+            time (single numeric, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
-            variablevalue (np.array, optional): the variable vaulue to use. 
+            variablevalue (numpy.ndarray, optional): the variable vaulue to use. 
                 Defaults to the value of self.variable at the given time.
 
         Returns:
@@ -316,10 +316,10 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         dependencies are needed?
 
         Args:
-            timestep (single numeric value): the timestep to calculate 
+            timestep (single numeric): the timestep to calculate 
 
         Returns:
-            numpy.array : the timesteps
+            numpy.ndarray : the timesteps
 
         Note:
             timestep 0 means the current time
@@ -335,10 +335,10 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         dependencies are needed?
 
         Args:
-            timestep (single numeric value): the timestep to calculate 
+            timestep (single numeric): the timestep to calculate 
 
         Returns:
-            numpy.array : the timesteps
+            numpy.ndarray : the timesteps
 
         Note:
             timestep 0 means the current time
@@ -350,7 +350,7 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         Calculate the equation's linear factor in front of the variable.
 
         Args:
-            times (single numeric value, optional): the time to calculate the 
+            time (single numeric, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
 
         Returns:
@@ -368,7 +368,7 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         variable.
         
         Args:
-            times (single numeric value, optional): the time to calculate the 
+            time (single numeric, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
 
         Returns:
@@ -386,9 +386,9 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         the variable.
 
         Args:
-            times (single numeric value, optional): the time to calculate the 
+            time (single numeric, optional): the time to calculate the 
                 derivative. Defaults to the variable's current (last) time.
-            variablevalue (np.array, optional): the variable vaulue to use. 
+            variablevalue (numpy.ndarray, optional): the variable vaulue to use. 
                 Defaults to the value of self.variable at the given time.
 
         Returns:
@@ -689,14 +689,15 @@ class SetOfNumericalSchemes(utils.SetOfObjects):
     Base class for sets of NumericalSchemes
     
     Args:
-        elements (list of NumericalScheme instance): the numerical schemes
-        fallback_plan (list): 
-            the fallback plan if automatic planning fails.
-            Depending on the combination of numerical scheme and equations,
+        elements (:any:`list` of :any:`NumericalScheme`, optional): the the
+            numerical schemes 
+        fallback_plan (list, optional): the fallback plan if automatic planning
+            fails. Depending on the combination of numerical scheme and equations,
             a certain order or solving the equations is crucial. For some
             cases, the order can be determined automatically, but if that
             fails, one has to provide this information by hand.
-            Has to be a list of ``[varname, [timestep1,timestep2,...]]`` pairs.
+            Has to be a :any:`list` of ``[varname, [timestep1,timestep2,...]]``
+            pairs.
 
             varname: 
                 the name of the equation variable. Obviously there has to be at
@@ -806,7 +807,7 @@ class SetOfNumericalSchemes(utils.SetOfObjects):
 
         Returns:
             key (str): the unique key for this object. The equation's variable's
-                id is used.
+            id is used.
         """
         return obj.equation.variable.id
 
