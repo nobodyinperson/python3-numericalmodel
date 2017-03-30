@@ -183,9 +183,11 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         # check if values are inside bounds
         lower, upper = self.bounds
         assert np.all(newvalue >= lower), \
-            ("new value is smaller than lower bound {}").format(lower)
+            ("{}: new value is smaller than lower bound {}").format(
+                self.name,lower)
         assert np.all(newvalue <= upper), \
-            ("new value is greater than upper bound {}").format(upper)
+            ("{}: new value is greater than upper bound {}").format(
+                self.name,upper)
         # append to log
         t = self.next_time # the next time
         ind = self.times == t # indices where this next time is already present
@@ -221,9 +223,11 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         # check if values are inside bounds
         lower, upper = self.bounds
         assert np.all(newvalues >= lower), \
-            ("new value is smaller than lower bound {}").format(lower)
+            ("{}: new value is smaller than lower bound {}").format(
+                self.name,lower)
         assert np.all(newvalues <= upper), \
-            ("new value is greater than upper bound {}").format(upper)
+            ("{}: new value is greater than upper bound {}").format(
+                self.name,upper)
         self._values = newvalues
         # reset intepolator
         self.interpolator = None
