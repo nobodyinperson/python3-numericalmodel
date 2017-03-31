@@ -53,6 +53,11 @@ tag:
 .PHONY: setup-test
 setup-test:
 	$(SETUP.PY) test
+
+.PHONY: coverage
+coverage:
+	coverage run --source=$(PACKAGE_FOLDER) $(SETUP.PY) test
+	coverage report
 	
 .PHONY: test
 test:
@@ -73,5 +78,5 @@ distclean: clean
 	rm -f $$(find -type f -iname '*.pyc')
 	(cd $(DOCS_FOLDER) && make clean)
 
-.PHONY: travis-test
-travis-test: wheel docs setup-test
+.PHONY: fulltest
+travis-test: wheel docs coverage

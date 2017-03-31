@@ -595,6 +595,7 @@ class LeapFrog(NumericalScheme):
     def step(self, time = None, timestep = None, tendency = True):
         if timestep is None: timestep = self.max_timestep
         v = self.equation.variable
+        if time is None: time = v.time
         # get equation parts
         linear = self.linear_factor( time = time )
         indep  = self.independent_addend( time = time )

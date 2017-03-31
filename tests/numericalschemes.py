@@ -68,6 +68,51 @@ class NumericalSchemeWithConstantLinearDecayEquationTest(BasicTest):
             self.logger.debug("result: {}".format(res))
             self.assertTrue( np.allclose( res, expected ) )
 
+    @testname("leap-frog scheme")
+    @unittest.skipIf(SKIPALL,"skipping all tests")
+    def test_leapfrog(self):
+        inp = self.equation.input
+        v = self.equation.variable
+        scheme = LeapFrog( equation = self.equation, )
+        for ts in self.timesteps:
+            lin = self.equation.linear_factor()
+            ind = self.equation.independent_addend()
+            expected = 2 * ts * ( - inp("a") * v()  + inp("F") )
+            self.logger.debug("expected: {}".format(expected))
+            res = scheme.step( timestep = ts, tendency = True )
+            self.logger.debug("result: {}".format(res))
+            self.assertTrue( np.allclose( res, expected ) )
+
+    @testname("Runge-Kutta-4 scheme")
+    @unittest.skipIf(SKIPALL,"skipping all tests")
+    def test_rungekutta4(self):
+        inp = self.equation.input
+        v = self.equation.variable
+        scheme = RungeKutta4( equation = self.equation, )
+        for ts in self.timesteps:
+            lin = self.equation.linear_factor()
+            ind = self.equation.independent_addend()
+            t = v.time
+            cur = v()
+
+            def F(): return lin * cur + ind + nli
+
+            nli = self.equation.nonlinear_addend()
+            k1 = ts * F()
+            nli = self.equation.nonlinear_addend(variablevalue = cur + k1 / 2)
+            k2 = ts * F()
+            nli = self.equation.nonlinear_addend(variablevalue = cur + k2 / 2)
+            k3 = ts * F()
+            nli = self.equation.nonlinear_addend(variablevalue = cur + k3)
+            k4 = ts * F()
+            tend = ( k1 + 2 * k2 + 2 * k3 + k4 ) / 6
+
+            expected = tend
+            self.logger.debug("expected: {}".format(expected))
+            res = scheme.step( timestep = ts, tendency = True )
+            self.logger.debug("result: {}".format(res))
+            self.assertTrue( np.allclose( res, expected ) )
+
         
         
 class NumericalSchemeWithVariableLinearDecayEquationTest(BasicTest):
