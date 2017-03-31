@@ -7,6 +7,9 @@ python3-numericalmodel
 .. image:: https://readthedocs.org/projects/python3-numericalmodel/badge/?version=latest
    :target: http://python3-numericalmodel.readthedocs.io/en/latest/?badge=latest
 
+.. image:: https://coveralls.io/repos/github/nobodyinperson/python3-numericalmodel/badge.svg?branch=master
+    :target: https://coveralls.io/github/nobodyinperson/python3-numericalmodel?branch=master
+
 .. image:: https://badge.fury.io/py/numericalmodel.svg
    :target: https://badge.fury.io/py/numericalmodel)  
 
