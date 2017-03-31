@@ -1,17 +1,17 @@
 python3-numericalmodel 
 ======================
 
-.. image:: http://travis-ci.org/nobodyinperson/python3-numericalmodel.svg?branch=master
-   :target: http://travis-ci.org/nobodyinperson/python3-numericalmodel
+.. image:: https://travis-ci.org/nobodyinperson/python3-numericalmodel.svg?branch=master
+   :target: https://travis-ci.org/nobodyinperson/python3-numericalmodel
 
-.. image:: http://readthedocs.org/projects/python3-numericalmodel/badge/?version=latest
-   :target: http://python3-numericalmodel.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/python3-numericalmodel/badge/?version=latest
+   :target: https://python3-numericalmodel.readthedocs.io/en/latest/?badge=latest
 
-.. image:: http://coveralls.io/repos/github/nobodyinperson/python3-numericalmodel/badge.svg?branch=master
-    :target: http://coveralls.io/github/nobodyinperson/python3-numericalmodel?branch=master
+.. image:: https://img.shields.io/coveralls/nobodyinperson/python3-numericalmodel.svg?maxAge=600&branch=master
+    :target: https://coveralls.io/github/nobodyinperson/python3-numericalmodel?branch=master
 
-.. image:: http://badge.fury.io/py/numericalmodel.svg
-   :target: http://badge.fury.io/py/numericalmodel)  
+.. image:: https://badge.fury.io/py/numericalmodel.svg
+   :target: https://badge.fury.io/py/numericalmodel)  
 
 
 Abstract classes to set up and run a numerical model in Python
