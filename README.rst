@@ -4,7 +4,7 @@ python3-numericalmodel
 .. image:: https://travis-ci.org/nobodyinperson/python3-numericalmodel.svg?branch=master
    :target: https://travis-ci.org/nobodyinperson/python3-numericalmodel
 
-.. image:: https://readthedocs.org/projects/python3-numericalmodel/badge/?version=latest
+.. image:: http://readthedocs.org/projects/python3-numericalmodel/badge/?version=latest
    :target: https://python3-numericalmodel.readthedocs.io/en/latest/?badge=latest
 
 .. image:: https://img.shields.io/coveralls/nobodyinperson/python3-numericalmodel.svg?maxAge=600&branch=master
