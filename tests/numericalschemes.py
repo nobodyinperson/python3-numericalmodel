@@ -18,40 +18,6 @@ import numpy as np
 # skip everything
 SKIPALL = False # by default, don't skip everything
 
-class LinearDecayEquation(PrognosticEquation):
-    """ Class to represent linear decay equations
-    """
-    ###############
-    ### Methods ###
-    ###############
-    def linear_factor(self, time = None ):
-        def v(var): return self.input[var](time)
-        return - v("a")
-
-    def independent_addend(self, time = None ):
-        def v(var): return self.input[var](time)
-        return v("F")
-
-    def nonlinear_addend(self, *args, **kwargs):
-        return 0 # nonlinear addend is always zero
-
-a = Parameter(id="a",name="linear factor",
-values = np.array([1]),
-times = np.array([0])
-)
-F = ForcingValue(id="F",name="independent addend",
-values = np.array([5]),
-times = np.array([0])
-)
-T = StateVariable(id="T",name="variable", 
-values = np.array([20]),
-times = np.array([0]),
-)
-equation = LinearDecayEquation( 
-variable = T,
-input = SetOfInterfaceValues( elements = [a,F] )
-)
-
 class NumericalSchemeWithConstantLinearDecayEquationTest(BasicTest):
     """ Class for numerical scheme tests with constant linear decay equation
     """

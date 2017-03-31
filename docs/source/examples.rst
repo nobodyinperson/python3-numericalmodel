@@ -42,7 +42,7 @@ This is the full code from the :doc:`model-setup` section::
             return - self.input["a"](time)
 
         def independent_addend(self, time = None ):
-            # take the "F" forcing parammodel.integrate( final_time = model.model_time + 60 )eter from the input, interpolate it to
+            # take the "F" forcing parameter from the input, interpolate it to
             # the given "time" and return it
             return self.input["F"](time)
 
