@@ -189,7 +189,7 @@ class DerivativeEquation(Equation):
     ###############
     ### Methods ###
     ###############
-    def linear_factor(self, time = None):
+    def linear_factor(self, time = None): # pragma: no cover
         """ 
         Calculate the derivative's linear factor in front of the variable
 
@@ -203,7 +203,7 @@ class DerivativeEquation(Equation):
         """
         raise NotImplementedError("subclasses must override this method")
 
-    def independent_addend(self, time = None):
+    def independent_addend(self, time = None): # pragma: no cover
         """ 
         Calculate the derivative's addend part that is independent of the
         variable.
@@ -218,7 +218,8 @@ class DerivativeEquation(Equation):
         """
         raise NotImplementedError("subclasses must override this method")
 
-    def nonlinear_addend(self, time = None, variablevalue = None):
+    def nonlinear_addend(
+        self, time = None, variablevalue = None): # pragma: no cover
         """ 
         Calculate the derivative's addend part that is nonlinearly dependent
         of the variable.
@@ -235,7 +236,7 @@ class DerivativeEquation(Equation):
         """
         raise NotImplementedError("subclasses must override this method")
 
-    def derivative(self, time = None, variablevalue = None):
+    def derivative(self, time = None, variablevalue = None): # pragma: no cover
         """ Calculate the derivative (right-hand-side) of the equation
 
         Args:

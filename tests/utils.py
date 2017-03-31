@@ -6,6 +6,7 @@ import logging
 # import authentication module
 import numericalmodel
 from numericalmodel import utils
+from numericalmodel.utils import *
 
 # import test data
 from .test_data import *
@@ -91,6 +92,35 @@ class SetOfObjectsConstructorTest(SetOfObjectsTest):
             self.assertEqual( setoo[key].val, element.val ) # property changed
     
 
+class SetOfObjectsInteractiveTest(SetOfObjectsTest):
+    def setUp(self):
+        self.set = SetOfObjects() # empty set
+
+    @testname("add_element")
+    @unittest.skipIf(SKIPALL,"skipping all tests")
+    def test_add_element(self):
+        obj = object()
+        self.set.add_element( obj )
+        self.assertTrue( obj in self.set.elements )
+
+    @testname("setitem")
+    @unittest.skipIf(SKIPALL,"skipping all tests")
+    def test_setitem(self):
+        obj = object()
+        self.set["object"] = obj
+        self.assertEqual( self.set["object"], obj )
+        self.assertTrue( obj in self.set.elements )
+
+    @testname("delitem")
+    @unittest.skipIf(SKIPALL,"skipping all tests")
+    def test_delitem(self):
+        obj = object()
+        self.set["object"] = obj
+        self.assertTrue( "object" in self.set )
+        del self.set["object"]
+        self.assertFalse( "object" in self.set )
+        
+        
 
 def run():
     # run the tests
