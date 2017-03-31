@@ -296,18 +296,11 @@ class NumericalModel(GenericModel):
             This feature is still in development and currently not really
             functional.
         """
-        try:
-            from .gui import NumericalModelGui
-            # create a gui
-            gui = NumericalModelGui( numericalmodel = self )
-            # run the gui
-            gui.run()
-        except ImportError:
-            self.logger.warning(
-                "Could not load interactive gui. "
-                "Please refer to the numericalmodel.gui documentation " 
-                "for further information."
-                )
+        from .gui import NumericalModelGui
+        # create a gui
+        gui = NumericalModelGui( numericalmodel = self )
+        # run the gui
+        gui.run()
 
     def __str__(self): # pragma: no cover
         """ 

@@ -97,8 +97,12 @@ todo_include_todos = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-if not READTHEDOCS:
-    html_theme = 'classic'
+if not READTHEDOCS: # if we are not on ReadTheDocs
+    try: # try to import the ReadTheDocs theme
+        import sphinx_rtd_theme
+        html_theme = "sphinx_rtd_theme"
+    except: # otherwise default to classic
+        html_theme = 'classic'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
