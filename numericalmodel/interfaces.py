@@ -40,25 +40,22 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         bounds = None,
         ):
         # set properties
-        if time_function is None:  
-            self.time_function = self._default_time_function
-        else:             self.time_function = time_function
-        if name is None:  self.name = self._default_name
-        else:             self.name = name
-        if unit is None:  self.unit = self._default_unit
-        else:             self.unit = unit
-        if id is None:    self.id = self._default_id
-        else:             self.id = id
-        if bounds is None: self.bounds = self._default_bounds
-        else:              self.bounds = bounds
-        if values is None:self.values = self._default_values
-        else:             self.values = values
-        if times is None: self.times = self._default_times
-        else:             self.times = times
-        if interpolation is None: 
-            self.interpolation = self._default_interpolation
-        else:             self.interpolation = interpolation
-
+        if not time_function is None:  
+            self.time_function = time_function
+        if not name is None:  
+            self.name = name
+        if not unit is None:  
+            self.unit = unit
+        if not id is None:    
+            self.id = id
+        if not bounds is None: 
+            self.bounds = bounds
+        if not values is None:
+            self.values = values
+        if not times is None: 
+            self.times = times
+        if not interpolation is None: 
+            self.interpolation = interpolation
 
     ##################
     ### Properties ###

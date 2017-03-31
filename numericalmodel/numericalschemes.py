@@ -30,25 +30,20 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         equation = None, fallback_max_timestep = None, 
         ignore_linear = None, ignore_independent = None, 
         ignore_nonlinear = None):
-        if equation is None: self.equation = self._default_equation
-        else:                self.equation = equation
-        if fallback_max_timestep is None: 
-            self.fallback_max_timestep = self._default_fallback_max_timestep
-        else:                self.fallback_max_timestep = fallback_max_timestep
-        if description is None: self.description = self._default_description
-        else:                   self.description = description
-        if long_description is None: 
-            self.long_description = self._default_long_description
-        else:                   self.long_description = long_description
-        if ignore_linear is None: 
-            self.ignore_linear = self._default_ignore_linear
-        else:                     self.ignore_linear = ignore_linear
-        if ignore_independent is None: 
-            self.ignore_independent = self._default_ignore_independent
-        else:                     self.ignore_independent = ignore_independent
-        if ignore_nonlinear is None: 
-            self.ignore_nonlinear = self._default_ignore_nonlinear
-        else:                     self.ignore_nonlinear = ignore_nonlinear
+        if not equation is None: 
+            self.equation = equation
+        if not fallback_max_timestep is None: 
+            self.fallback_max_timestep = fallback_max_timestep
+        if not description is None: 
+            self.description = description
+        if not long_description is None: 
+            self.long_description = long_description
+        if not ignore_linear is None: 
+            self.ignore_linear = ignore_linear
+        if not ignore_independent is None: 
+            self.ignore_independent = ignore_independent
+        if not ignore_nonlinear is None: 
+            self.ignore_nonlinear = ignore_nonlinear
 
     ##################
     ### Properties ###
@@ -132,7 +127,7 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
 
         :type: :any:`float`
         """
-        return 1
+        return 1.0
 
     @property
     def equation(self):

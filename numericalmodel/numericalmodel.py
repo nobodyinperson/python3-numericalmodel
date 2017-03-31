@@ -62,17 +62,16 @@ class NumericalModel(GenericModel):
         self.logger = logging.getLogger(__name__) # logger
 
         # set properties
-        if initial_time is None: self.initial_time = self._default_initial_time
-        else:                    self.initial_time = initial_time
-        if parameters is None: self.parameters = self._default_parameters
-        else:                  self.parameters = parameters
-        if forcing is None: self.forcing = self._default_forcing
-        else:               self.forcing = forcing
-        if variables is None: self.variables = self._default_variables
-        else:                 self.variables = variables
-        if numericalschemes is None: 
-            self.numericalschemes = self._default_numericalschemes
-        else:                 self.numericalschemes = numericalschemes
+        if not initial_time is None: 
+            self.initial_time = initial_time
+        if not parameters is None: 
+            self.parameters = parameters
+        if not forcing is None: 
+            self.forcing = forcing
+        if not variables is None: 
+            self.variables = variables
+        if not numericalschemes is None: 
+            self.numericalschemes = numericalschemes
 
     ##################
     ### Properties ###
@@ -165,7 +164,7 @@ class NumericalModel(GenericModel):
         :type: :any:`SetOfForcingValues`
         """
         try:                   self._forcing # already defined?
-        except AttributeError: self._forcing = self._default_parameters
+        except AttributeError: self._forcing = self._default_forcing
         return self._forcing # return
 
     @forcing.setter

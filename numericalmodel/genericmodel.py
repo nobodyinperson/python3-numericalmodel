@@ -37,18 +37,16 @@ class GenericModel(utils.LoggerObject,utils.ReprObject):
         self.logger = logging.getLogger(__name__) # logger 
 
         # set properties
-        if name is None: self.name = self._default_name
-        else:            self.name = name
-        if version is None: self.version = self._default_version
-        else:               self.version = version
-        if description is None: self.description = self._default_description
-        else:                   self.description = description
-        if long_description is None: 
-            self.long_description = self._default_long_description
-        else:
+        if not name is None: 
+            self.name = name
+        if not version is None: 
+            self.version = version
+        if not description is None: 
+            self.description = description
+        if not long_description is None: 
             self.long_description = long_description
-        if authors is None: self.authors = self._default_authors
-        else:               self.authors = authors
+        if not authors is None: 
+            self.authors = authors
 
     ##################
     ### Properties ###

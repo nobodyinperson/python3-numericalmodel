@@ -28,16 +28,18 @@ class Equation(utils.LoggerObject,utils.ReprObject):
         description = None, long_description = None,
         input = None,
         ):
-        if variable is None: self.variable = self._default_variable
-        else:                self.variable = variable
-        if description is None: self.description = self._default_description
-        else:                   self.description = description
-        if input is None: self.input = self._default_input
-        else:                   self.input = input
-        if long_description is None: 
-            self.long_description = self._default_long_description
-        else:                   self.long_description = long_description
+        if not variable is None: 
+            self.variable = variable
+        if not description is None: 
+            self.description = description
+        if not input is None: 
+            self.input = input
+        if not long_description is None: 
+            self.long_description = long_description
 
+    ##################
+    ### Properties ###
+    ##################
     @property
     def variable(self):
         """ 
