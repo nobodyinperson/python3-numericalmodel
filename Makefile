@@ -56,8 +56,9 @@ setup-test:
 
 .PHONY: coverage
 coverage:
-	coverage run --source=$(PACKAGE_FOLDER) $(SETUP.PY) test
-	coverage report
+	coverage run --omit=$(PACKAGE_FOLDER)/gui.py --source=$(PACKAGE_FOLDER) $(SETUP.PY) test
+	coverage report --omit=$(PACKAGE_FOLDER)/gui.py 
+	coverage html
 	
 .PHONY: test
 test:

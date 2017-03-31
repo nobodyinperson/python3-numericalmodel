@@ -25,6 +25,14 @@ numericalmodel.genericmodel module
     :undoc-members:
     :show-inheritance:
 
+numericalmodel.gui module
+-------------------------
+
+.. automodule:: numericalmodel.gui
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 numericalmodel.interfaces module
 --------------------------------
 

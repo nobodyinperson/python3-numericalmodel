@@ -1,7 +1,6 @@
 language: python
 before_install:
     - pip3 install --only-binary=scipy,numpy numpy scipy
-    - pip3 install sphinx
     - pip3 install coveralls
 python:
     - 3.5
@@ -9,6 +8,6 @@ python:
 install: 
     - pip3 install --prefix=~/.local .
 script: 
-    - coverage run --source=numericalmodel setup.py test
+    - coverage run --source=numericalmodel --omit=numericalmodel/gui.py setup.py test
 after_success:
     - coveralls

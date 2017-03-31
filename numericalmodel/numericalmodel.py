@@ -270,7 +270,8 @@ class NumericalModel(GenericModel):
         return self.model_time
 
     def integrate(self, final_time):
-        """ Integrate the model until final_time
+        """ 
+        Integrate the model until final_time
 
         Args:
             final_time (float): time to integrate until
@@ -281,6 +282,31 @@ class NumericalModel(GenericModel):
             final_time = final_time,
             )
         self.logger.info("end of integration")
+
+    def run_interactively(self): # pragma: no cover
+        """ 
+        Open a GTK window to interactively run the model:
+        
+        - change the model variables, parameters and forcing on the fly
+        - directly see the model output
+        - control simulation speed
+        - pause and continue or do stepwise simulation
+
+        .. todo::
+            This remains yet to be implemented.
+        """
+        try:
+            from .gui import NumericalModelGui
+            # create a gui
+            gui = NumericalModelGui( numericalmodel = self )
+            # run the gui
+            gui.run()
+        except ImportError:
+            self.logger.warning(
+                "Could not load interactive gui. "
+                "Please refer to the numericalmodel.gui documentation " 
+                "for further information."
+                )
 
     def __str__(self): # pragma: no cover
         """ 
