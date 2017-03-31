@@ -283,7 +283,7 @@ class NumericalModel(GenericModel):
             )
         self.logger.info("end of integration")
 
-    def __str__(self):
+    def __str__(self): # pragma: no cover
         """ 
         Stringification
 

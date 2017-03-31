@@ -444,7 +444,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         else:
             return self.interpolator(times) # return
 
-    def __str__(self):
+    def __str__(self): # pragma: no cover
         """ 
         Stringification
 

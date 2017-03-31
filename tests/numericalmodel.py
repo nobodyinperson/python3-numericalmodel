@@ -14,24 +14,6 @@ from .test_flow import *
 # skip everything
 SKIPALL = False # by default, don't skip everything
 
-class NumericalModelTest(BasicTest):
-    def setUp(self):
-        self.attrs = [
-            "name","description","long_description","authors","version"]
-        model = NumericalModel()
-        for attr in self.attrs:
-            setattr(model, attr, "test" + attr)
-        self.model = model
-
-    @testname("stringification summary")
-    @unittest.skipIf(SKIPALL,"skipping all tests")
-    def test_stringification(self):
-        model = self.model
-        string = str(model)
-        for attr in self.attrs: # loop over attributes
-            # check if all basic attributes are contained in stringification
-            self.assertTrue( getattr(model, attr) in string )
-            
 class NumericalModelLinearDecayEquationRunTest(BasicTest):
     def setUp(self):
         # create a model

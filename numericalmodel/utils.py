@@ -271,7 +271,7 @@ class SetOfObjects(ReprObject, LoggerObject, collections.MutableMapping):
     def __len__(self):
         return len(self.store)
 
-    def __str__(self):
+    def __str__(self): # pragma: no cover
         """ 
         Stringification
 

@@ -474,7 +474,7 @@ class NumericalScheme(utils.ReprObject,utils.LoggerObject):
         """
         raise NotImplementedError("Subclasses should override this")
 
-    def __str__(self):
+    def __str__(self): # pragma: no cover
         """ 
         Stringification
 

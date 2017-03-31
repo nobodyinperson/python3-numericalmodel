@@ -187,7 +187,7 @@ class GenericModel(utils.LoggerObject,utils.ReprObject):
         """
         return "anonymous"
 
-    def __str__(self):
+    def __str__(self): # pragma: no cover
         """ 
         Stringification
 

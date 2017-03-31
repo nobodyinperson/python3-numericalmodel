@@ -162,7 +162,7 @@ class Equation(utils.LoggerObject,utils.ReprObject):
             "id is neither str nor has it an 'id' attribute"
         return ident in self.input.keys()
 
-    def __str__(self):
+    def __str__(self): # pragma: no cover
         """ 
         Stringification
 
