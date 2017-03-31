@@ -292,8 +292,9 @@ class NumericalModel(GenericModel):
         - control simulation speed
         - pause and continue or do stepwise simulation
 
-        .. todo::
-            This remains yet to be implemented.
+        .. note::
+            This feature is still in development and currently not really
+            functional.
         """
         try:
             from .gui import NumericalModelGui

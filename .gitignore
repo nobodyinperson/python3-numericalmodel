@@ -82,6 +82,11 @@ celerybeat-schedule
 venv/
 ENV/
 
+# backups
+*~
+*\#
+\#*
+
 # Spyder project settings
 .spyderproject
 

@@ -56,8 +56,8 @@ setup-test:
 
 .PHONY: coverage
 coverage:
-	coverage run --omit=$(PACKAGE_FOLDER)/gui.py --source=$(PACKAGE_FOLDER) $(SETUP.PY) test
-	coverage report --omit=$(PACKAGE_FOLDER)/gui.py 
+	coverage run --omit='$(PACKAGE_FOLDER)/gui/*' --source=$(PACKAGE_FOLDER) $(SETUP.PY) test
+	coverage report --omit='$(PACKAGE_FOLDER)/gui/*' 
 	coverage html
 	
 .PHONY: test
@@ -80,4 +80,4 @@ distclean: clean
 	(cd $(DOCS_FOLDER) && make clean)
 
 .PHONY: fulltest
-travis-test: wheel docs coverage
+fulltest: wheel docs coverage

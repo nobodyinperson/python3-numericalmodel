@@ -6,6 +6,13 @@ numericalmodel package
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    numericalmodel.gui
+
 Submodules
 ----------
 
@@ -21,14 +28,6 @@ numericalmodel.genericmodel module
 ----------------------------------
 
 .. automodule:: numericalmodel.genericmodel
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-numericalmodel.gui module
--------------------------
-
-.. automodule:: numericalmodel.gui
     :members:
     :undoc-members:
     :show-inheritance:

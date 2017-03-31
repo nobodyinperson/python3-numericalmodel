@@ -8,6 +8,6 @@ python:
 install: 
     - pip3 install --prefix=~/.local .
 script: 
-    - coverage run --source=numericalmodel --omit=numericalmodel/gui.py setup.py test
+    - coverage run --source=numericalmodel --omit='numericalmodel/gui/*' setup.py test
 after_success:
     - coveralls
