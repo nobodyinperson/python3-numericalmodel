@@ -26,6 +26,9 @@ setup(
         ],
     test_suite = 'tests',
     tests_require = [ 'numpy' ],
+    extras_require = { 
+        "gui": ["matplotlib"],
+        },
     install_requires = [ 'numpy', 'scipy' ],
     packages = find_packages(exclude=['tests']),
     )
