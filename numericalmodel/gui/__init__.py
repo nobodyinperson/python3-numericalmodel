@@ -18,6 +18,15 @@ To install, use your system's package manager and install ``python3-gi``.
 On Debian/Ubuntu::
 
     sudo apt-get install python3-gi
+
+.. note:: If you don't have system privileges, there is also the (experimental)
+    :mod:`pgi` module on `PyPi <https://pypi.python.org/pypi/pgi/>`_ that you
+    can install via::
+
+        pip3 install --user pgi
+
+    Theoretically, the :any:`NumericalModelGui` might work with this package as
+    well.
 """)
 
 __doc__ = \
@@ -28,15 +37,27 @@ module.
 
 """ + instructions
 
-try: 
+PGI = False
+GTK_INSTALLED = False 
+try: # try real gi module
     import gi
     gi.require_version('Gtk','3.0')
     from gi.repository import Gtk
     from gi.repository import GLib
+    GTK_INSTALLED = True # importing real gi worked
+except: # importing real gi didn't work
+    try: # try pgi package
+        import pgi
+        pgi.install_as_gi()
+        import gi
+        gi.require_version('Gtk','3.0')
+        from gi.repository import Gtk
+        from gi.repository import GLib
+        PGI = True
+        GTK_INSTALLED = True # importing pgi worked
+    except:
+        pass
 
-    GTK_INSTALLED = True # importing worked
-except: # importing didn't work
-    GTK_INSTALLED = False 
 
 # only if gtk is installed
 class NumericalModelGui(utils.LoggerObject):
@@ -49,16 +70,43 @@ class NumericalModelGui(utils.LoggerObject):
     def __init__(self, numericalmodel):
         # check for GTK
         if not GTK_INSTALLED: 
-            print("python3-gi seems not installed."+instructions)
+            print("Gtk3.0 bindings seem not installed.\n"+instructions)
             sys.exit()
 
         self.setup_signals(
             signals = [signal.SIGINT, signal.SIGTERM, signal.SIGHUP],
             handler = self.quit
         )
-        # can't use Gtk.main() because of a bug that prevents proper SIGINT
-        # handling. use Glib.MainLoop() directly instead.
-        self.mainloop = GLib.MainLoop() # main loop
+
+    ##################
+    ### Properties ###
+    ##################
+    @property
+    def builder(self):
+        """ 
+        The gui's ``GtkBuilder``. This is a read-only property.
+        
+        :getter: Return the ``GtkBuilder``, load the :any:`gladefile` if
+            necessary.
+        :type: ``GtkBuilder``
+        """
+        try: 
+            self._builder
+        except AttributeError: 
+            self._builder = Gtk.Builder() # new builder
+            # load the gladefile
+            self._builder.add_from_file( self.gladefile )
+        return self._builder
+
+    @property
+    def gladefile(self):
+        """ 
+        The gui's Glade file. This is a read-only property.
+
+        :type: :any:`str`
+        """
+        return resource_filename(__name__, "gui.glade")
+
     
     ###############
     ### Methods ###
@@ -86,23 +134,10 @@ class NumericalModelGui(utils.LoggerObject):
                 install_glib_handler, sig, # add a handler for this signal
                 priority = GLib.PRIORITY_HIGH  )
 
-    # build the gui
-    def load_builder(self):
-        """ 
-        Load the GTK gui elements from a gladefile
-        """
-        # get a GTK builder
-        self.builder = Gtk.Builder()
-        # load the gladefile
-        self.builder.add_from_file(resource_filename(__name__,"gui.glade"))
-
     def setup_gui(self):
         """ 
         Set up the GTK gui elements
         """
-        # load the builder
-        self.load_builder()
-
         # connect signals
         self.handlers = {
             "CloseApplication": self.quit,
@@ -120,7 +155,7 @@ class NumericalModelGui(utils.LoggerObject):
         self.setup_gui()
         # run the gui
         self.logger.debug("starting mainloop")
-        self.mainloop.run()
+        Gtk.main()
         self.logger.debug("mainloop is over")
 
     def quit(self, *args):
@@ -129,7 +164,7 @@ class NumericalModelGui(utils.LoggerObject):
         """
         self.logger.debug("received quitting signal")
         self.logger.debug("stopping mainloop...")
-        self.mainloop.quit()
+        Gtk.main_quit()
         self.logger.debug("mainloop stopped")
 
     def __getitem__(self, key):

@@ -109,6 +109,7 @@ if not READTHEDOCS: # if we are not on ReadTheDocs
 # documentation.
 #
 # html_theme_options = {}
+autodoc_member_order = "groupwise"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
