@@ -2,6 +2,7 @@
 # system modules
 import unittest
 import logging
+import time
 
 # import authentication module
 from numericalmodel.interfaces import *
@@ -146,6 +147,40 @@ class InterfaceValueInteractiveChangeTest(InterfaceValueTest):
             self.logger.debug("values:{}".format(val.values))
             self.assertEqual( val.value , v(ta + 0.5) )
             self.assertEqual( val.time , ta + 0.5 )
+
+    @testname("remembrance=0 test")
+    @unittest.skipIf(SKIPALL,"skipping all tests")
+    def test_remembrance_zero(self):
+        val = self.val
+        val.remembrance = 0
+        for i in range(10):
+            val.value = i
+        self.assertEqual( val.values, np.array([9]) )
+
+    @testname("remembrance test")
+    @unittest.skipIf(SKIPALL,"skipping all tests")
+    def test_remembrance(self):
+        NOW = time.time()
+        def time_func(): return time.time() - NOW
+        ts = 0.1
+        val = self.val
+        val.time_function = time_func
+        val.remembrance = ts
+        for i in range(2):
+            val.value = i
+            # print(repr(val))
+            time.sleep( ts * 0.2 ) # wait short time
+            val.value = i + 1
+            # print(repr(val))
+            time.sleep( ts * 0.2 ) # wait short time
+            val.value = i + 2
+            # print(repr(val))
+            self.assertTrue( np.allclose(val.values, np.array([i,i+1,i+2]) ))
+            time.sleep( ts * 0.7  ) # wait that long that the first value is old
+            val.value = i + 3
+            # print(repr(val))
+            self.assertTrue( np.allclose(val.values, np.array([i+1,i+2,i+3]) ))
+            time.sleep( ts * 1.5 ) # wait very long
 
 
         

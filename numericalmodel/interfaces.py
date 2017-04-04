@@ -16,18 +16,21 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
     Base class for model interface values
 
     Args:
-        name (str): value name
-        id (str): unique id
-        values (1d :any:`numpy.ndarray`): all values this InterfaceValue had in 
-            chronological order
-        times (1d :any:`numpy.ndarray`): the corresponding times to values
-        unit (str): physical unit of value
-        bounds (list): lower and upper value bounds
-        interpolation (str): interpolation kind. See
-            scipy.interpolate.interp1d for documentation. Defaults to 
+        name (str, optional): value name
+        id (str, optional): unique id
+        values (1d :any:`numpy.ndarray`, optional): all values this
+            InterfaceValue had in chronological order
+        times (1d :any:`numpy.ndarray`, optional): the corresponding times to
+            values 
+        unit (str,optional): physical unit of value
+        bounds (list, optional): lower and upper value bounds
+        interpolation (str, optional): interpolation kind. See
+            :any:`scipy.interpolate.interp1d` for documentation. Defaults to 
             "zero".
-        time_function (callable): function that returns the model time as 
-            utc unix timestamp
+        time_function (callable, optional): function that returns the model time
+            as utc unix timestamp
+        remembrance (float, optional): maximum :any:`time` difference to keep
+            past :any:`values`
     """
     def __init__(self,
         name = None,
@@ -38,6 +41,7 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         values = None,
         times = None,
         bounds = None,
+        remembrance = None,
         ):
         # set properties
         if not time_function is None:  
@@ -56,6 +60,8 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
             self.times = times
         if not interpolation is None: 
             self.interpolation = interpolation
+        if not remembrance is None: 
+            self.remembrance = remembrance
 
     ##################
     ### Properties ###
@@ -197,6 +203,8 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
             self.values = np.append(self.values, val)
             # self.logger.debug("time {t} not yet there, " 
             #     "appending value {val}".format(t=t,val=val))
+        # for get old values
+        self.forget_old_values()
 
     @property
     def values(self):
@@ -350,6 +358,38 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         return [-np.Inf, np.Inf] # unlimited
 
     @property
+    def remembrance(self):
+        """ 
+        How long should this :any:`InterfaceValue` store it's :any:`values`?
+        This is the greatest difference the current :any:`time` may have to the
+        smallest :any:`time`. Values earlier than the :any:`remembrance` time
+        are discarded. Set to :any:`None` for no limit.
+
+        :type: :any:`float` or :any:`None`
+        """
+        try:                   self._remembrance # already defined?
+        except AttributeError: self._remembrance = self._default_remembrance
+        return self._remembrance # return
+
+    @remembrance.setter
+    def remembrance(self, newremembrance):
+        if newremembrance is None:
+            self._remembrance = newremembrance
+        else:
+            remembrance = float(newremembrance)
+            assert remembrance >= 0, "remembrance has to be positive float"
+            self._remembrance = remembrance
+
+    @property
+    def _default_remembrance(self):
+        """ 
+        Default :any:`remembrance` if none was given.
+
+        :type: :any:`float64`
+        """
+        return None
+
+    @property
     def interpolation(self):
         """ 
         The interpolation kind to use in the :any:`__call__` method. See
@@ -418,8 +458,29 @@ class InterfaceValue(utils.LoggerObject,utils.ReprObject):
         assert hasattr(value, "__call__"), "interpolator needs to be callable"
         self._interpolator = value
 
+    ###############
+    ### Methods ###
+    ###############
+    def forget_old_values(self):
+        """ 
+        Drop :any:`values` and :any:`times` older than :any:`remembrance`.
+
+        Returns:
+            bool : :any:`True` is data was dropped, :any:`False` otherwise
+        """
+        res = False
+        if not self.remembrance is None: # remembrance was set
+            assert self.times.size == self.values.size,\
+                "times and values are of different size!"
+            up_to_date = self.times >= ( self.time - self.remembrance )
+            self._times  = self.times[up_to_date]
+            self._values = self.values[up_to_date]
+            res = True
+        return res
+
     def __call__(self, times = None):
-        """ When called, return the value, optionally at a specific time
+        """ 
+        When called, return the value, optionally at a specific time
 
         Args:
             times (numeric, optional): The times to obtain data from
