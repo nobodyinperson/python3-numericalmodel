@@ -13,6 +13,12 @@ def read_file(filename):
 # run setup
 # take metadata from setup.cfg
 setup( 
+    name = "numericalmodel",
+    description = "abstract classes to set up and run a numerical model",
+    author = "Yann Büchau",
+    author_email = "yann.buechau@web.de",
+    keywords = "modelling",
+    license = "GPLv3",
     version = __version__,
     url = 'https://github.com/nobodyinperson/python3-numericalmodel',
     download_url = ("https://github.com/nobodyinperson/" 

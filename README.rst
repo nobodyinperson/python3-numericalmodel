@@ -20,9 +20,11 @@ Install
 +++++++
 
 This package is on `PyPi <https://pypi.python.org>`_. To install
-``numericalmodel``, run::
+``numericalmodel``, run
 
-    pip3 install --user numericalmodel
+.. code:: sh
+
+    pip install numericalmodel
 
 Documentation
 +++++++++++++
