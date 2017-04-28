@@ -8,11 +8,15 @@ INIT.PY = $(shell find $(PACKAGE_FOLDER) -maxdepth 1 -type f -name '__init__.py'
 RST_SOURCES = $(shell find $(DOCS_FOLDER) -type f -iname '*.rst')
 PYTHON_SOURCES = $(shell find $(PACKAGE_FOLDER) -type f -iname '*.py')
 
-
+# get the version from the __init__.py file
 VERSION = $(shell perl -ne 'if (s/^.*__version__\s*=\s*"(\d+\.\d+.\d+)".*$$/$$1/g){print;exit}' $(INIT.PY))
 
 .PHONY: all
-all: wheel docs
+all: $(SETUP.PY) 
+
+# write the INIT.PY VERSION
+$(SETUP.PY): $(INIT.PY)
+	perl -pi -e 's/^(.*__version__\s*=\s*")(\d+\.\d+.\d+)(".*)$$/$${1}$(VERSION)$${3}/g' $@
 
 docs: $(PYTHON_SOURCES) $(RST_SOURCES)
 	sphinx-apidoc -M -f -o $(DOCS_API_FOLDER) $(PACKAGE_FOLDER)

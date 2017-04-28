@@ -16,48 +16,48 @@ Subpackages
 Submodules
 ----------
 
-numericalmodel.equations module
--------------------------------
+numericalmodel\.equations module
+--------------------------------
 
 .. automodule:: numericalmodel.equations
     :members:
     :undoc-members:
     :show-inheritance:
 
-numericalmodel.genericmodel module
-----------------------------------
+numericalmodel\.genericmodel module
+-----------------------------------
 
 .. automodule:: numericalmodel.genericmodel
     :members:
     :undoc-members:
     :show-inheritance:
 
-numericalmodel.interfaces module
---------------------------------
+numericalmodel\.interfaces module
+---------------------------------
 
 .. automodule:: numericalmodel.interfaces
     :members:
     :undoc-members:
     :show-inheritance:
 
-numericalmodel.numericalmodel module
-------------------------------------
+numericalmodel\.numericalmodel module
+-------------------------------------
 
 .. automodule:: numericalmodel.numericalmodel
     :members:
     :undoc-members:
     :show-inheritance:
 
-numericalmodel.numericalschemes module
---------------------------------------
+numericalmodel\.numericalschemes module
+---------------------------------------
 
 .. automodule:: numericalmodel.numericalschemes
     :members:
     :undoc-members:
     :show-inheritance:
 
-numericalmodel.utils module
----------------------------
+numericalmodel\.utils module
+----------------------------
 
 .. automodule:: numericalmodel.utils
     :members:
