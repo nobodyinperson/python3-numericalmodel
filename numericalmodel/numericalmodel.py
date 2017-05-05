@@ -281,6 +281,7 @@ class NumericalModel(GenericModel):
             start_time = self.model_time,
             final_time = final_time,
             )
+        self.model_time = final_time
         self.logger.info("end of integration")
 
     def run_interactively(self): # pragma: no cover

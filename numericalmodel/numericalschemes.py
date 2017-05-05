@@ -833,7 +833,7 @@ class SetOfNumericalSchemes(utils.SetOfObjects):
                 scheme_time = current_time
                 varname = plan_step[0] # variable name
                 scheme = self[varname] # get scheme
-                timesteps = np.asarray( plan_step[1] ) * biggest_timestep 
+                timesteps = np.asarray( plan_step[1] ) * big_timestep 
                 # self.logger.debug("timesteps: {}".format(timesteps))
                 for ts in timesteps: # loop over all timesteps
                     until_time = current_time + ts
