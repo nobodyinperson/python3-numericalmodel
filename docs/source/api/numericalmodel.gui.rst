@@ -1,5 +1,5 @@
-numericalmodel.gui package
-==========================
+numericalmodel\.gui package
+===========================
 
 .. automodule:: numericalmodel.gui
     :members:
