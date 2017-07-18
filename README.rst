@@ -1,3 +1,6 @@
+    This project was moved to `GitLab.com <https://gitlab.com/nobodyinperson/python3-numericalmodel>`_.
+    This repository here is not up to date anymore.
+
 python3-numericalmodel 
 ======================
 
